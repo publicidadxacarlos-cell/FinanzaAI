@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FinanzaAI">
+    <meta name="theme-color" content="#020617">
+    <title>FinanzaAI - Executive Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Montserrat', 'sans-serif'],
+              serif: ['Cinzel', 'serif'],
+              display: ['Playfair Display', 'serif'],
+            },
+            colors: {
+              midnight: '#020617',
+              navy: '#0f172a',
+              gold: {
+                300: '#f3e5ab',
+                400: '#e5c07b',
+                500: '#d4af37',
+                600: '#b8860b',
+                700: '#996515',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Scrollbars elegantes */
+      ::-webkit-scrollbar { width: 4px; height: 4px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.2); border-radius: 10px; }
+      
+      body { 
+        -webkit-tap-highlight-color: transparent; 
+        background-color: #020617;
+        overscroll-behavior-y: contain; /* Evita el 'pull to refresh' accidental */
+      }
+
+      .theme-executive { font-family: 'Montserrat', sans-serif; }
+      .theme-executive .font-executive { font-family: 'Cinzel', serif; }
+      
+      /* Animación de brillo dorado */
+      .gold-text-gradient {
+        background: linear-gradient(to bottom, #f3e5ab 0%, #d4af37 50%, #b8860b 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.2));
+      }
+
+      /* Animación suave para cambios de vista */
+      .animate-fade-in {
+        animation: fadeIn 0.4s ease-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.561.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-midnight text-white font-sans antialiased overflow-hidden selection:bg-gold-500 selection:text-black">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

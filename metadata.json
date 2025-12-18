@@ -1,0 +1,9 @@
+{
+  "name": "FinanzaAI - Tu Gestor Inteligente",
+  "description": "Una aplicación completa de gestión financiera personal impulsada por Gemini. Controla gastos, escanea recibos, visualiza objetivos y habla con tu asesor financiero AI en tiempo real.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
