@@ -1,4 +1,3 @@
-
 import { 
   GoogleGenAI, 
   Type, 
@@ -80,15 +79,31 @@ export const base64ToUint8Array = decode;
 // ---------------------------------------------------------
 
 /**
- * Categorizes a transaction description using Gemini 3 Flash.
+ * Categorizes a transaction description using our secure API route.
  */
 export const categorizeTransaction = async (description: string): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Categoriza en una palabra: "${description}". Ej: Comida, Ocio, Salud.`,
-  });
-  return response.text?.trim() || "Varios";
+  try {
+    // Llama a nuestra API route segura en lugar de directamente a Gemini
+    const response = await fetch('/api/categorize', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ description }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API Error:', response.status, errorText);
+      return "Varios";
+    }
+
+    const data = await response.json();
+    return data.category || "Varios";
+  } catch (error) {
+    console.error('Error categorizing transaction:', error);
+    return "Varios"; // Valor por defecto si falla
+  }
 };
 
 /**
