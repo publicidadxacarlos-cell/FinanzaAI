@@ -126,14 +126,39 @@ const App: React.FC = () => {
         themes={THEMES}
       />
 
-      <div className="flex-1 flex flex-col h-screen overflow-hidden md:ml-64 transition-all duration-300 relative z-10">
-        <MobileHeader
-          key={`mobile-header-${currentView}`}
-          currentView={currentView}
-          currentTheme={currentTheme}
-          onMenuClick={() => setSidebarOpen(true)}
-          onSettingsClick={() => setView(View.SETTINGS)}
+   <div className="flex-1 flex flex-col md:ml-64">
+  <MobileHeader
+    key={`mobile-header-${currentView}`}
+    currentView={currentView}
+    currentTheme={currentTheme}
+    onMenuClick={() => setSidebarOpen(true)}
+    onSettingsClick={() => setView(View.SETTINGS)}
+  />
+
+  <main className="flex-1">
+    <div className="max-w-6xl mx-auto p-4 md:p-12">
+      {currentView === View.DASHBOARD && <Dashboard transactions={transactions} onExport={() => {}} onSync={handleSyncAll} isSyncing={isSyncing} theme={currentTheme} />}
+      {currentView === View.ASSISTANT && <Assistant theme={currentTheme} />}
+      {currentView === View.TRANSACTIONS && <Transactions transactions={transactions} 
+        addTransaction={(t) => {setTransactions([t, ...transactions]); sendToSheet(t, 'create');}} 
+        updateTransaction={(t) => {setTransactions(transactions.map(item => item.id === t.id ? t : item)); sendToSheet(t, 'update');}}
+        deleteTransaction={(id) => {const t = transactions.find(x => x.id === id); setTransactions(transactions.filter(x => x.id !== id)); if(t) sendToSheet(t, 'delete');}} 
+        theme={currentTheme} 
+      />}
+      {currentView === View.SCANNER && <Scanner onScanComplete={(t) => {setTransactions([t, ...transactions]); sendToSheet(t, 'create');}} theme={currentTheme} />}
+      {currentView === View.VISION_BOARD && <VisionBoard theme={currentTheme} />}
+      {currentView === View.SETTINGS && (
+        <Settings 
+          theme={currentTheme} 
+          onSync={handleSyncAll} 
+          isSyncing={isSyncing} 
+          onClearData={() => setTransactions([])} 
+          themes={THEMES} 
+          setTheme={setCurrentTheme}
         />
+      )}
+    </div>
+  </main>
 
         <main 
           key={`main-content-${currentView}`}
@@ -192,7 +217,7 @@ const App: React.FC = () => {
         </main>
 
         {/* BOTONERA MÓVIL - MÁS COMPACTA (2mm menos arriba/abajo = py-3 en lugar de py-4) */}
-        <nav className="md:hidden fixed bottom-6 inset-x-6 bg-navy/80 backdrop-blur-2xl border border-white/10 px-6 py-3 flex justify-between items-center z-50 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+        <nav className="md:hidden fixed bottom-6 left-6 right-6 bg-navy/80 backdrop-blur-2xl border border-white/10 px-6 py-3 flex justify-between items-center z-50 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
            <button onClick={() => setView(View.DASHBOARD)} className={`flex flex-col items-center gap-1 transition-all ${currentView === View.DASHBOARD ? currentTheme.text + ' scale-110' : 'text-gray-500'}`}>
               <LayoutDashboard size={24} />
               <span className="text-[9px] font-bold uppercase tracking-tighter">Panel</span>
