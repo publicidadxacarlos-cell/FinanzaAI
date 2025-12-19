@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
@@ -135,9 +134,13 @@ const App: React.FC = () => {
                   <span className={`text-[8px] font-bold uppercase tracking-[0.3em] ${currentTheme.text}`}>{currentTheme.name}</span>
               </div>
           </div>
-          <button onClick={() => setView(View.SETTINGS)} className={`${currentTheme.text} p-2 rounded-full hover:bg-white/5 transition-all`}>
-              <SettingsIcon size={24} />
-          </button>
+          
+          {/* Botón de ajustes - visible siempre excepto en Assistant */}
+          {currentView !== View.ASSISTANT && (
+            <button onClick={() => setView(View.SETTINGS)} className={`${currentTheme.text} p-2 rounded-full hover:bg-white/5 transition-all`}>
+                <SettingsIcon size={24} />
+            </button>
+          )}
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-12 pb-32 md:pb-12 scroll-smooth">
