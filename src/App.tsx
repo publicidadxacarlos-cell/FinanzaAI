@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
-import MobileHeader from './MobileHeader'; // <-- AÑADE ESTA LÍNEA
+import MobileHeader from './MobileHeader';
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Scanner from './pages/Scanner';
@@ -136,34 +136,63 @@ const App: React.FC = () => {
         />
 
         <main 
-  key={`main-content-${currentView}`} // ← FORZAR RE-RENDER AL CAMBIAR VISTA
-  className="flex-1 overflow-y-auto p-4 md:p-12 pb-32 md:pb-12 scroll-smooth"
-  style={{
-    transform: 'translateZ(0)', // ← ACELERACIÓN GPU / FIJAR LAYOUT
-    backfaceVisibility: 'hidden',
-    willChange: 'transform'
-  }}
->
+          key={`main-content-${currentView}`}
+          className="flex-1 overflow-y-auto p-4 md:p-12 pb-32 md:pb-12 scroll-smooth"
+          style={{
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+            willChange: 'transform'
+          }}
+        >
           <div className="max-w-6xl mx-auto">
-            {currentView === View.DASHBOARD && <Dashboard transactions={transactions} onExport={() => {}} onSync={handleSyncAll} isSyncing={isSyncing} theme={currentTheme} />}
-            {currentView === View.TRANSACTIONS && <Transactions transactions={transactions} addTransaction={(t) => {setTransactions([t, ...transactions]); sendToSheet(t, 'create');}} updateTransaction={(t) => {setTransactions(transactions.map(item => item.id === t.id ? t : item)); sendToSheet(t, 'update');}} deleteTransaction={(id) => {const t = transactions.find(x => x.id === id); setTransactions(transactions.filter(x => x.id !== id)); if(t) sendToSheet(t, 'delete');}} theme={currentTheme} />}
-            {currentView === View.SCANNER && <Scanner onScanComplete={(t) => {setTransactions([t, ...transactions]); sendToSheet(t, 'create');}} theme={currentTheme} />}
-            {currentView === View.ASSISTANT && <Assistant theme={currentTheme} />}
-            {currentView === View.VISION_BOARD && <VisionBoard theme={currentTheme} />}
+            {/* VISTAS AISLADAS PARA EVITAR DESPLAZAMIENTO */}
+            {currentView === View.DASHBOARD && (
+              <div key="dashboard-container" style={{ transform: 'translateZ(0)' }}>
+                <Dashboard transactions={transactions} onExport={() => {}} onSync={handleSyncAll} isSyncing={isSyncing} theme={currentTheme} />
+              </div>
+            )}
+            {currentView === View.ASSISTANT && (
+              <div key="assistant-container" style={{ transform: 'translateZ(0)' }}>
+                <Assistant theme={currentTheme} />
+              </div>
+            )}
+            {currentView === View.TRANSACTIONS && (
+              <div key="transactions-container" style={{ transform: 'translateZ(0)' }}>
+                <Transactions transactions={transactions} 
+                  addTransaction={(t) => {setTransactions([t, ...transactions]); sendToSheet(t, 'create');}} 
+                  updateTransaction={(t) => {setTransactions(transactions.map(item => item.id === t.id ? t : item)); sendToSheet(t, 'update');}}
+                  deleteTransaction={(id) => {const t = transactions.find(x => x.id === id); setTransactions(transactions.filter(x => x.id !== id)); if(t) sendToSheet(t, 'delete');}} 
+                  theme={currentTheme} 
+                />
+              </div>
+            )}
+            {currentView === View.SCANNER && (
+              <div key="scanner-container" style={{ transform: 'translateZ(0)' }}>
+                <Scanner onScanComplete={(t) => {setTransactions([t, ...transactions]); sendToSheet(t, 'create');}} theme={currentTheme} />
+              </div>
+            )}
+            {currentView === View.VISION_BOARD && (
+              <div key="visionboard-container" style={{ transform: 'translateZ(0)' }}>
+                <VisionBoard theme={currentTheme} />
+              </div>
+            )}
             {currentView === View.SETTINGS && (
-              <Settings 
-                theme={currentTheme} 
-                onSync={handleSyncAll} 
-                isSyncing={isSyncing} 
-                onClearData={() => setTransactions([])} 
-                themes={THEMES} 
-                setTheme={setCurrentTheme}
-              />
+              <div key="settings-container" style={{ transform: 'translateZ(0)' }}>
+                <Settings 
+                  theme={currentTheme} 
+                  onSync={handleSyncAll} 
+                  isSyncing={isSyncing} 
+                  onClearData={() => setTransactions([])} 
+                  themes={THEMES} 
+                  setTheme={setCurrentTheme}
+                />
+              </div>
             )}
           </div>
         </main>
 
-        <nav className="md:hidden fixed bottom-6 inset-x-6 bg-navy/80 backdrop-blur-2xl border border-white/10 px-6 py-4 flex justify-between items-center z-50 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+        {/* BOTONERA MÓVIL - MÁS COMPACTA (2mm menos arriba/abajo = py-3 en lugar de py-4) */}
+        <nav className="md:hidden fixed bottom-6 inset-x-6 bg-navy/80 backdrop-blur-2xl border border-white/10 px-6 py-3 flex justify-between items-center z-50 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
            <button onClick={() => setView(View.DASHBOARD)} className={`flex flex-col items-center gap-1 transition-all ${currentView === View.DASHBOARD ? currentTheme.text + ' scale-110' : 'text-gray-500'}`}>
               <LayoutDashboard size={24} />
               <span className="text-[9px] font-bold uppercase tracking-tighter">Panel</span>
