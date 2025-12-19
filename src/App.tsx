@@ -126,7 +126,10 @@ const App: React.FC = () => {
       />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden md:ml-64 transition-all duration-300 relative z-10">
-        <header className="md:hidden flex items-center justify-between p-6 bg-navy/60 backdrop-blur-xl border-b border-white/5">
+        <header 
+          key={`mobile-header-${currentView}`} // ← SOLUCIÓN AÑADIDA AQUÍ
+          className="md:hidden flex items-center justify-between p-6 bg-navy/60 backdrop-blur-xl border-b border-white/5"
+        >
           <div className="flex items-center gap-4" onClick={() => setSidebarOpen(true)}>
               <Menu className={currentTheme.text} size={24} />
               <div className="flex flex-col">
@@ -174,7 +177,7 @@ const App: React.FC = () => {
            </button>
            
            <div className="relative -translate-y-10">
-               <button onClick={() => setView(View.SCANNER)} className={`bg-gradient-to-tr ${currentTheme.gradient} p-5 rounded-full border-4 border-midnight shadow-[0_15px_30px_rgba(0,0,0,0.6)] ${currentTheme.text} transform active:scale-95 transition-all border-white/10`}>
+               <button onClick={() => setView(View.SCANNER)} className={`bg-gradient-to-tr ${currentTheme.gradient} p-5 rounded-full border-4 border-midnight shadow-[0_15px_30px rgba(0,0,0,0.6)] ${currentTheme.text} transform active:scale-95 transition-all border-white/10`}>
                   <ScanLine size={28} />
                </button>
            </div>
