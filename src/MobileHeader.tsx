@@ -1,4 +1,4 @@
-// src/MobileHeader.tsx - VERSIÓN A PRUEBA DE FALLOS
+// src/MobileHeader.tsx - VERSIÓN BLINDADA CONTRA ESTILOS EXTERNOS
 import React, { useEffect, useRef } from 'react';
 import { View, AppTheme } from './types';
 import { Menu, Settings as SettingsIcon } from 'lucide-react';
@@ -20,41 +20,78 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   renderCount.current += 1;
   
   useEffect(() => {
-    console.log(`🔄 MobileHeader RENDERIZADO. Vista: ${currentView}, Render #: ${renderCount.current}`);
+    console.log(`🔄 MobileHeader BLINDADO. Vista: ${currentView}, Render #: ${renderCount.current}`);
   }, [currentView]);
 
-return (
-  <header 
-    data-mobile-header={`view-${currentView}-render-${renderCount.current}`}
-    className="md:hidden flex items-center justify-between p-6 bg-navy/60 backdrop-blur-xl border-b border-white/5"
-    // ESTILOS para evitar que se "suba"
-    style={{
-      transform: 'translateY(0) !important',
-      marginTop: '0 !important',
-      top: '0 !important',
-      position: 'sticky'
-    }}
-  >
-    <div className="flex items-center gap-4" onClick={onMenuClick}>
-      <Menu className={currentTheme.text} size={24} />
-      <div className="flex flex-col">
-        <h1 className="text-xl font-executive font-bold gold-text-gradient cursor-pointer">
-          FinanzaAI [R{renderCount.current}]
-        </h1>
-        <span className={`text-[10px] font-bold uppercase tracking-[0.3em] ${currentTheme.text}`}>
-          {currentTheme.name} | Vista: {currentView}
-        </span>
+  return (
+    <>
+      {/* Contenedor ABSOLUTO que IGNORA cualquier flujo de documento */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 99999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '1.5rem',
+        backgroundColor: 'rgba(2, 6, 23, 0.6)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        height: '80px',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }} onClick={onMenuClick}>
+          <Menu style={{ color: currentTheme.text.includes('gold') ? '#d4af37' : '#a855f7' }} size={24} />
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <h1 style={{
+              fontSize: '1.25rem',
+              fontFamily: 'Cinzel, serif',
+              fontWeight: '700',
+              background: 'linear-gradient(to bottom, #f3e5ab 0%, #d4af37 50%, #b8860b 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: 'drop-shadow(0 0 8px rgba(212, 175, 55, 0.2))',
+              margin: 0,
+              cursor: 'pointer'
+            }}>
+              FinanzaAI [B{renderCount.current}]
+            </h1>
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.3em',
+              color: currentTheme.text.includes('gold') ? '#d4af37' : '#a855f7',
+              marginTop: '2px'
+            }}>
+              {currentTheme.name} | Vista: {currentView}
+            </span>
+          </div>
+        </div>
+        
+        <button 
+          onClick={onSettingsClick}
+          style={{
+            color: currentTheme.text.includes('gold') ? '#d4af37' : '#a855f7',
+            padding: '0.5rem',
+            borderRadius: '9999px',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
+          <SettingsIcon size={24} />
+        </button>
       </div>
-    </div>
-    
-    <button 
-      onClick={onSettingsClick}
-      className={`${currentTheme.text} p-2 rounded-full hover:bg-white/5 transition-all`}
-    >
-      <SettingsIcon size={24} />
-    </button>
-  </header>
-);
+      
+      {/* Espaciador para que el contenido principal no quede debajo del header fijo */}
+      <div style={{ height: '80px', width: '100%' }}></div>
+    </>
+  );
 };
 
 export default MobileHeader;
