@@ -135,7 +135,15 @@ const App: React.FC = () => {
           onSettingsClick={() => setView(View.SETTINGS)}
         />
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-12 pb-32 md:pb-12 scroll-smooth">
+        <main 
+  key={`main-content-${currentView}`} // ← FORZAR RE-RENDER AL CAMBIAR VISTA
+  className="flex-1 overflow-y-auto p-4 md:p-12 pb-32 md:pb-12 scroll-smooth"
+  style={{
+    transform: 'translateZ(0)', // ← ACELERACIÓN GPU / FIJAR LAYOUT
+    backfaceVisibility: 'hidden',
+    willChange: 'transform'
+  }}
+>
           <div className="max-w-6xl mx-auto">
             {currentView === View.DASHBOARD && <Dashboard transactions={transactions} onExport={() => {}} onSync={handleSyncAll} isSyncing={isSyncing} theme={currentTheme} />}
             {currentView === View.TRANSACTIONS && <Transactions transactions={transactions} addTransaction={(t) => {setTransactions([t, ...transactions]); sendToSheet(t, 'create');}} updateTransaction={(t) => {setTransactions(transactions.map(item => item.id === t.id ? t : item)); sendToSheet(t, 'update');}} deleteTransaction={(id) => {const t = transactions.find(x => x.id === id); setTransactions(transactions.filter(x => x.id !== id)); if(t) sendToSheet(t, 'delete');}} theme={currentTheme} />}
