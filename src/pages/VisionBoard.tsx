@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { generateGoalImage, generateGoalVideo, editGoalImage } from '../services/geminiService';
 import { AppTheme } from '../types';

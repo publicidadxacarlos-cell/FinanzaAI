@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppTheme, Transaction } from '../types';
 import { 
@@ -97,7 +96,7 @@ const Settings: React.FC<SettingsProps> = ({
   return (
     <div className="max-w-3xl mx-auto space-y-8 animate-fade-in pb-24">
       <div className="space-y-2">
-        <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+        <h2 className="text-3xl font-bold text-white font-executive flex items-center gap-3">
           <Sheet className="text-green-500" /> Configuración
         </h2>
         <p className="text-gray-400">Gestiona tu conexión y apariencia.</p>

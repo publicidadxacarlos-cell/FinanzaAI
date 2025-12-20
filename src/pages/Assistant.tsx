@@ -129,7 +129,7 @@ const Assistant: React.FC<AssistantProps> = ({ theme }) => {
   };
 
   return (
-    <div className="h-[calc(100vh-8rem)] grid grid-rows-[1fr_auto] gap-4">
+    <div className="min-h-[calc(100vh-10rem)] grid grid-rows-[1fr_auto] gap-4">
       {/* Header / Status */}
       <div className="flex justify-between items-center bg-card p-4 rounded-xl border border-white/5">
         <div className="flex items-center gap-3">
@@ -137,7 +137,7 @@ const Assistant: React.FC<AssistantProps> = ({ theme }) => {
             <BrainCircuit size={20} className="text-white" />
           </div>
           <div>
-            <h3 className="font-bold text-white">Asesor Gemini 3 Pro</h3>
+            <h3 className="font-bold text-white text-lg font-executive">Asesor Gemini 3 Pro</h3>
             <p className="text-xs text-gray-400">{status || 'Modo Chat (Thinking) activo'}</p>
           </div>
         </div>

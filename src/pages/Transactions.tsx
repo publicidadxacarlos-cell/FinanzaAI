@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Transaction, TransactionType, AppTheme } from '../types';
 import { categorizeTransaction } from '../services/geminiService';
@@ -103,7 +102,7 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
   return (
     <div className="space-y-6 animate-fade-in pb-16">
       <div className="flex justify-between items-center">
-          <h2 className={`text-2xl font-bold ${theme.text} font-executive`}>
+          <h2 className={`text-3xl font-bold ${theme.text} font-executive`}>
               {editingId ? '✏️ Editando Operación' : 'Libro Contable'}
           </h2>
           {editingId && (

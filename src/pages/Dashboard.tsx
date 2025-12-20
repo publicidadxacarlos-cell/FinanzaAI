@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Transaction, TransactionType, AppTheme } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
@@ -37,7 +36,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, theme }) => {
       <div className="flex justify-between items-end border-b border-white/5 pb-8">
         <div>
             <p className={`text-[10px] uppercase font-bold tracking-[0.4em] mb-2 opacity-60 ${theme.text}`}>Estatus Financiero</p>
-            <h2 className="text-4xl font-executive font-bold gold-text-gradient flex items-center gap-5">
+            <h2 className="text-4xl font-executive font-bold text-white flex items-center gap-5">
               <CalendarIcon className={theme.text} size={32} /> Patrimonio
             </h2>
         </div>
@@ -48,7 +47,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, theme }) => {
           <div className={`absolute top-0 right-0 w-40 h-40 ${theme.primary} opacity-5 rounded-full -translate-y-10 translate-x-10 group-hover:scale-125 transition-transform duration-1000`}></div>
           <p className="text-xs font-bold uppercase tracking-widest opacity-40 mb-3">Balance Consolidado</p>
           <div className="relative">
-            <h3 className={`font-executive font-bold gold-text-gradient drop-shadow-lg leading-none transition-all duration-300 ${getFontSizeClass(balanceString)}`}>
+            <h3 className={`font-executive font-bold text-white drop-shadow-lg leading-none transition-all duration-300 ${getFontSizeClass(balanceString)}`}>
               {balanceString}
             </h3>
           </div>
