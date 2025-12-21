@@ -100,7 +100,7 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-16">
+    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-20">
       <div className="flex justify-between items-center">
           <h2 className={`text-3xl font-bold ${theme.text} font-executive`}>
               {editingId ? '✏️ Editando Operación' : 'Libro Contable'}
