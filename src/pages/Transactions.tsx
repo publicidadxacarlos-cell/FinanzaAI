@@ -171,7 +171,7 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
 
       <div className={`bg-navy/20 rounded-3xl border ${theme.secondary} shadow-2xl overflow-hidden`}>
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full min-w-[600px] text-left">
             <thead className="bg-white/5 text-[10px] text-gray-500 uppercase tracking-widest font-bold">
               <tr>
                 <th className="p-6">Fecha</th>
