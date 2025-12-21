@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { analyzeReceipt } from '../services/geminiService';
 import { Transaction, TransactionType, AppTheme } from '../types';
-import { Loader2, Camera, Check, Upload, X } from 'lucide-react';
+import { Loader2, Camera, Check, X } from 'lucide-react';
 
 interface ScannerProps {
   onScanComplete: (t: Transaction) => void;
@@ -28,7 +28,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete, theme }) => {
     if (!image) return;
     setLoading(true);
     try {
-      // Strip base64 prefix
+      // Separar el prefijo base64
       const base64Data = image.split(',')[1];
       const data = await analyzeReceipt(base64Data);
       
@@ -36,15 +36,63 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete, theme }) => {
         id: crypto.randomUUID(),
         date: data.date || new Date().toISOString().split('T')[0],
         amount: data.total,
-        // Use the extracted merchant name or default fallback
         description: data.merchant || 'Recibo escaneado',
         category: data.category || 'Compras',
         type: TransactionType.EXPENSE
       };
       
       onScanComplete(newTransaction);
-      alert(`✅ Ticket procesado: ${newTransaction.description} - $${newTransaction.amount}`);
       setImage(null);
-    } catch (error) {
-      console.error(error);
-      alert("❌ No se pudo leer el recibo. Asegúrate de
+      alert("¡Recibo procesado con éxito!");
+    } catch (e) {
+      console.error(e);
+      alert("Error al analizar el recibo con Gemini.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-700">
+      <div className="bg-navy/40 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 text-center">
+        <h2 className={`text-3xl font-bold mb-2 ${theme.text}`}>Escáner Inteligente</h2>
+        <p className="text-gray-400 mb-8">Captura tu ticket y deja que la IA haga el trabajo</p>
+
+        {!image ? (
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-white/10 rounded-[2rem] p-12 hover:border-white/20 transition-all cursor-pointer group"
+          >
+            <div className={`w-20 h-20 rounded-full ${theme.primary} mx-auto flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
+              <Camera className="text-white" size={32} />
+            </div>
+            <p className="text-white font-medium">Pulsa para subir o tomar foto</p>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+          </div>
+        ) : (
+          <div className="relative max-w-sm mx-auto rounded-[2rem] overflow-hidden border border-white/20 shadow-2xl">
+            <img src={image} alt="Ticket" className="w-full h-auto" />
+            <button 
+              onClick={() => setImage(null)}
+              className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-white hover:bg-black"
+            >
+              <X size={20} />
+            </button>
+            <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+              <button 
+                onClick={processImage}
+                disabled={loading}
+                className={`w-full ${theme.primary} text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2`}
+              >
+                {loading ? <Loader2 className="animate-spin" /> : <Check size={20} />}
+                {loading ? 'Analizando...' : 'Confirmar Ticket'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Scanner;
