@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
-import MobileHeader from './MobileHeader';
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Scanner from './pages/Scanner';
@@ -109,7 +108,6 @@ const App: React.FC = () => {
     <div className={`flex h-screen bg-midnight overflow-hidden transition-all duration-700 relative ${currentTheme.id === 'executive' ? 'theme-executive' : ''}`}>
       <div className={`absolute inset-0 bg-gradient-to-tr ${currentTheme.gradient} opacity-70 pointer-events-none transition-all duration-1000`}></div>
 
-      {/* Notificación de sincronización */}
       <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-[70] transition-all duration-500 ${syncNotification ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}`}>
           <div className={`bg-navy border ${currentTheme.secondary} ${currentTheme.text} px-8 py-4 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.6)] flex items-center gap-4 font-bold border-t-4`}>
               <div className={`${currentTheme.primary} p-1.5 rounded-full shadow-lg`}><div className="w-2 h-2 bg-white rounded-full"></div></div>
@@ -117,7 +115,6 @@ const App: React.FC = () => {
           </div>
       </div>
 
-      {/* Sidebar */}
       <Sidebar 
         currentView={currentView} 
         setView={setView} 
@@ -128,117 +125,71 @@ const App: React.FC = () => {
         themes={THEMES}
       />
 
-      {/* Contenido principal */}
-      <div className="flex-1 flex flex-col md:ml-64 relative">
-        {/* Header móvil */}
-        <MobileHeader
-          key={`mobile-header-${currentView}`}
-          currentView={currentView}
-          currentTheme={currentTheme}
-          onMenuClick={() => setSidebarOpen(true)}
-          onSettingsClick={() => setView(View.SETTINGS)}
-        />
-
-        {/* Contenido principal - ÚNICO elemento main */}
-        <main 
-          key={`main-content-${currentView}`}
-          className="flex-1 overflow-y-auto p-4 md:p-12 pb-20 md:pb-12 scroll-smooth mt-16 md:mt-0"
-          style={{
-            transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
-            willChange: 'transform',
-            contentVisibility: 'auto'
-          }}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden md:ml-64 transition-all duration-300 relative z-10">
+        <header 
+          key={`mobile-header-${currentView}`} // ← SOLUCIÓN AÑADIDA AQUÍ
+          className="md:hidden flex items-center justify-between p-6 bg-navy/60 backdrop-blur-xl border-b border-white/5"
         >
+          <div className="flex items-center gap-4" onClick={() => setSidebarOpen(true)}>
+              <Menu className={currentTheme.text} size={24} />
+              <div className="flex flex-col">
+                  <h1 className="text-xl font-executive font-bold gold-text-gradient cursor-pointer">FinanzaAI</h1>
+                  <span className={`text-[8px] font-bold uppercase tracking-[0.3em] ${currentTheme.text}`}>{currentTheme.name}</span>
+              </div>
+          </div>
+          
+          {/* Botón de ajustes - visible siempre excepto en Assistant */}
+          {currentView !== View.ASSISTANT && (
+            <button onClick={() => setView(View.SETTINGS)} className={`${currentTheme.text} p-2 rounded-full hover:bg-white/5 transition-all`}>
+                <SettingsIcon size={24} />
+            </button>
+          )}
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-4 md:p-12 pb-32 md:pb-12 scroll-smooth">
           <div className="max-w-6xl mx-auto">
-            {/* VISTAS */}
-            {currentView === View.DASHBOARD && (
-              <div key="dashboard-container" style={{ transform: 'translateZ(0)' }}>
-                <Dashboard transactions={transactions} onExport={() => {}} onSync={handleSyncAll} isSyncing={isSyncing} theme={currentTheme} />
-              </div>
-            )}
-            {currentView === View.ASSISTANT && (
-              <div key="assistant-container" style={{ transform: 'translateZ(0)' }}>
-                <Assistant theme={currentTheme} />
-              </div>
-            )}
-            {currentView === View.TRANSACTIONS && (
-              <div key="transactions-container" style={{ transform: 'translateZ(0)' }}>
-                <Transactions transactions={transactions} 
-                  addTransaction={(t) => {setTransactions([t, ...transactions]); sendToSheet(t, 'create');}} 
-                  updateTransaction={(t) => {setTransactions(transactions.map(item => item.id === t.id ? t : item)); sendToSheet(t, 'update');}}
-                  deleteTransaction={(id) => {const t = transactions.find(x => x.id === id); setTransactions(transactions.filter(x => x.id !== id)); if(t) sendToSheet(t, 'delete');}} 
-                  theme={currentTheme} 
-                />
-              </div>
-            )}
-            {currentView === View.SCANNER && (
-              <div key="scanner-container" style={{ transform: 'translateZ(0)' }}>
-                <Scanner onScanComplete={(t) => {setTransactions([t, ...transactions]); sendToSheet(t, 'create');}} theme={currentTheme} />
-              </div>
-            )}
-            {currentView === View.VISION_BOARD && (
-              <div key="visionboard-container" style={{ transform: 'translateZ(0)' }}>
-                <VisionBoard theme={currentTheme} />
-              </div>
-            )}
+            {currentView === View.DASHBOARD && <Dashboard transactions={transactions} onExport={() => {}} onSync={handleSyncAll} isSyncing={isSyncing} theme={currentTheme} />}
+            {currentView === View.TRANSACTIONS && <Transactions transactions={transactions} addTransaction={(t) => {setTransactions([t, ...transactions]); sendToSheet(t, 'create');}} updateTransaction={(t) => {setTransactions(transactions.map(item => item.id === t.id ? t : item)); sendToSheet(t, 'update');}} deleteTransaction={(id) => {const t = transactions.find(x => x.id === id); setTransactions(transactions.filter(x => x.id !== id)); if(t) sendToSheet(t, 'delete');}} theme={currentTheme} />}
+            {currentView === View.SCANNER && <Scanner onScanComplete={(t) => {setTransactions([t, ...transactions]); sendToSheet(t, 'create');}} theme={currentTheme} />}
+            {currentView === View.ASSISTANT && <Assistant theme={currentTheme} />}
+            {currentView === View.VISION_BOARD && <VisionBoard theme={currentTheme} />}
             {currentView === View.SETTINGS && (
-              <div key="settings-container" style={{ transform: 'translateZ(0)' }}>
-                <Settings 
-                  theme={currentTheme} 
-                  onSync={handleSyncAll} 
-                  isSyncing={isSyncing} 
-                  onClearData={() => setTransactions([])} 
-                  themes={THEMES} 
-                  setTheme={setCurrentTheme}
-                />
-              </div>
+              <Settings 
+                theme={currentTheme} 
+                onSync={handleSyncAll} 
+                isSyncing={isSyncing} 
+                onClearData={() => setTransactions([])} 
+                themes={THEMES} 
+                setTheme={setCurrentTheme}
+              />
             )}
           </div>
         </main>
 
-        {/* BOTONERA MÓVIL - DELGADA Y PEGADA ABAJO */}
-        <nav className="md:hidden fixed bottom-0 left-3 right-3 bg-navy/95 backdrop-blur-xl border border-white/10 border-b-0 px-4 py-1.5 flex justify-between items-center z-50 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.8)]">
-          <button 
-            onClick={() => setView(View.DASHBOARD)} 
-            className={`flex flex-col items-center gap-0 transition-all duration-200 ${currentView === View.DASHBOARD ? `${currentTheme.text} scale-105` : 'text-gray-500'}`}
-          >
-            <LayoutDashboard size={22} />
-            <span className="text-[9px] font-bold uppercase tracking-tight mt-1">Panel</span>
-          </button>
-          
-          <button 
-            onClick={() => setView(View.TRANSACTIONS)} 
-            className={`flex flex-col items-center gap-0 transition-all duration-200 ${currentView === View.TRANSACTIONS ? `${currentTheme.text} scale-105` : 'text-gray-500'}`}
-          >
-            <Receipt size={22} />
-            <span className="text-[9px] font-bold uppercase tracking-tight mt-1">Libro</span>
-          </button>
-          
-          <div className="relative -translate-y-4">
-            <button 
-              onClick={() => setView(View.SCANNER)} 
-              className={`bg-gradient-to-tr ${currentTheme.gradient} p-3.5 rounded-full border-2 border-white/20 shadow-[0_8px_20px_rgba(0,0,0,0.5)] ${currentTheme.text} transform active:scale-95 transition-all duration-200`}
-            >
-              <ScanLine size={24} />
-            </button>
-          </div>
+        <nav className="md:hidden fixed bottom-6 inset-x-6 bg-navy/80 backdrop-blur-2xl border border-white/10 px-6 py-4 flex justify-between items-center z-50 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+           <button onClick={() => setView(View.DASHBOARD)} className={`flex flex-col items-center gap-1 transition-all ${currentView === View.DASHBOARD ? currentTheme.text + ' scale-110' : 'text-gray-500'}`}>
+              <LayoutDashboard size={24} />
+              <span className="text-[9px] font-bold uppercase tracking-tighter">Panel</span>
+           </button>
+           <button onClick={() => setView(View.TRANSACTIONS)} className={`flex flex-col items-center gap-1 transition-all ${currentView === View.TRANSACTIONS ? currentTheme.text + ' scale-110' : 'text-gray-500'}`}>
+              <Receipt size={24} />
+              <span className="text-[9px] font-bold uppercase tracking-tighter">Libro</span>
+           </button>
+           
+           <div className="relative -translate-y-10">
+               <button onClick={() => setView(View.SCANNER)} className={`bg-gradient-to-tr ${currentTheme.gradient} p-5 rounded-full border-4 border-midnight shadow-[0_15px_30px rgba(0,0,0,0.6)] ${currentTheme.text} transform active:scale-95 transition-all border-white/10`}>
+                  <ScanLine size={28} />
+               </button>
+           </div>
 
-          <button 
-            onClick={() => setView(View.ASSISTANT)} 
-            className={`flex flex-col items-center gap-0 transition-all duration-200 ${currentView === View.ASSISTANT ? `${currentTheme.text} scale-105` : 'text-gray-500'}`}
-          >
-            <Bot size={22} />
-            <span className="text-[9px] font-bold uppercase tracking-tight mt-1">Asesor</span>
-          </button>
-          
-          <button 
-            onClick={() => setView(View.VISION_BOARD)} 
-            className={`flex flex-col items-center gap-0 transition-all duration-200 ${currentView === View.VISION_BOARD ? `${currentTheme.text} scale-105` : 'text-gray-500'}`}
-          >
-            <ImageIcon size={22} />
-            <span className="text-[9px] font-bold uppercase tracking-tight mt-1">Metas</span>
-          </button>
+           <button onClick={() => setView(View.ASSISTANT)} className={`flex flex-col items-center gap-1 transition-all ${currentView === View.ASSISTANT ? currentTheme.text + ' scale-110' : 'text-gray-500'}`}>
+              <Bot size={24} />
+              <span className="text-[9px] font-bold uppercase tracking-tighter">Asesor</span>
+           </button>
+           <button onClick={() => setView(View.VISION_BOARD)} className={`flex flex-col items-center gap-1 transition-all ${currentView === View.VISION_BOARD ? currentTheme.text + ' scale-110' : 'text-gray-500'}`}>
+              <ImageIcon size={24} />
+              <span className="text-[9px] font-bold uppercase tracking-tighter">Metas</span>
+           </button>
         </nav>
       </div>
     </div>
