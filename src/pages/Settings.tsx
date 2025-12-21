@@ -94,7 +94,7 @@ const Settings: React.FC<SettingsProps> = ({
   };
 
   return (
-   <div className="max-w-6xl mx-auto space-y-10 animate-fade-in pb-20">
+    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in pb-24">
       <div className="space-y-2">
         <h2 className="text-3xl font-bold text-white font-executive flex items-center gap-3">
           <Sheet className="text-green-500" /> Configuración
@@ -129,7 +129,7 @@ const Settings: React.FC<SettingsProps> = ({
       </div>
 
       {/* SECCIÓN: CONEXIÓN GOOGLE SHEETS */}
-      <div className="bg-card p-6 rounded-2xl border border-white/5 shadow-xl space-y-6 overflow-hidden">
+      <div className="bg-card p-6 rounded-2xl border border-white/5 shadow-xl space-y-8">
         <section className="space-y-6">
             <h3 className="text-white font-bold flex items-center gap-2">
                 <Database className="text-blue-400" size={20} /> Conexión de Datos
