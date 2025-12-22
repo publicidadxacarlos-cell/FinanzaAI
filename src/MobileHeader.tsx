@@ -11,6 +11,7 @@ interface MobileHeaderProps {
 }
 
 const MobileHeader: React.FC<MobileHeaderProps> = ({
+   key={`mobile-header-${currentView}`}
   currentView,
   currentTheme,
   onMenuClick,
