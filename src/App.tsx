@@ -102,6 +102,7 @@ const App: React.FC = () => {
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden md:ml-64 relative z-10">
         <MobileHeader
+         key={`mobile-header-${currentView}`}
           currentView={currentView}
           currentTheme={currentTheme}
           onMenuClick={() => setSidebarOpen(true)}
