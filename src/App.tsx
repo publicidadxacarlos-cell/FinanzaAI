@@ -17,38 +17,9 @@ import {
 } from 'lucide-react';
 
 const THEMES: AppTheme[] = [
-  {
-    id: 'executive',
-    name: 'Executive Gold',
-    primary: 'bg-gold-500',
-    hover: 'hover:bg-gold-600',
-    text: 'text-gold-500',
-    gradient: 'from-[#020617] via-[#0f172a] to-[#020617]',
-    secondary: 'border-gold-500/30',
-  },
-  {
-    id: 'royal_blue',
-    name: 'Swedish Gold & Blue',
-    primary: 'bg-gold-500',
-    hover: 'hover:bg-gold-600',
-    text: 'text-gold-500',
-    gradient: 'from-[#003060] via-[#00529B] to-[#003060]',
-    secondary: 'border-gold-500/40',
-  },
-  {
-    id: 'amethyst',
-    name: 'Amethyst Luxe',
-    primary: 'bg-purple-600',
-    hover: 'hover:bg-purple-500',
-    text: 'text-purple-400',
-    gradient: 'from-[#020617] via-[#1a0b2e] to-[#020617]',
-    secondary: 'border-purple-500/40',
-  },
-];
-
-const INITIAL_DATA: Transaction[] = [
-  { id: '1', date: '2023-10-25', description: 'Inversión Portfolio', amount: 5000, category: 'Inversión', type: TransactionType.INCOME },
-  { id: '2', date: '2023-10-26', description: 'Cena de Negocios', amount: 150, category: 'Comida', type: TransactionType.EXPENSE },
+  { id: 'executive', name: 'Executive Gold', primary: 'bg-gold-500', hover: 'hover:bg-gold-600', text: 'text-gold-500', gradient: 'from-[#020617] via-[#0f172a] to-[#020617]', secondary: 'border-gold-500/30' },
+  { id: 'royal_blue', name: 'Swedish Gold & Blue', primary: 'bg-gold-500', hover: 'hover:bg-gold-600', text: 'text-gold-500', gradient: 'from-[#003060] via-[#00529B] to-[#003060]', secondary: 'border-gold-500/40' },
+  { id: 'amethyst', name: 'Amethyst Luxe', primary: 'bg-purple-600', hover: 'hover:bg-purple-500', text: 'text-purple-400', gradient: 'from-[#020617] via-[#1a0b2e] to-[#020617]', secondary: 'border-purple-500/40' }
 ];
 
 const App: React.FC = () => {
@@ -56,15 +27,23 @@ const App: React.FC = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<AppTheme>(THEMES[0]);
   const [isSyncing, setIsSyncing] = useState(false);
-
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     const saved = localStorage.getItem('transactions');
-    return saved ? JSON.parse(saved) : INITIAL_DATA;
+    return saved ? JSON.parse(saved) : [];
   });
 
+  // Guardado automático
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
   }, [transactions]);
+
+  // ARREGLO PARA QUE EL TÍTULO NO SE CORTE AL CAMBIAR DE VISTA
+  useEffect(() => {
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+      mainElement.scrollTo(0, 0);
+    }
+  }, [currentView]);
 
   const handleSyncAll = async () => {
     const sheetUrl = localStorage.getItem('googleSheetUrl');
@@ -102,134 +81,62 @@ const App: React.FC = () => {
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden md:ml-64 relative z-10">
         <MobileHeader
-         key={`mobile-header-${currentView}`}
+          key={`mobile-header-${currentView}`}
           currentView={currentView}
           currentTheme={currentTheme}
           onMenuClick={() => setSidebarOpen(true)}
           onSettingsClick={() => setView(View.SETTINGS)}
         />
-<main className="flex-1 overflow-y-auto p-4 md:p-12 pb-28 md:pb-12">
-  <div className="max-w-6xl mx-auto">
+        
+        <main className="flex-1 overflow-y-auto p-4 md:p-12 pb-28 md:pb-12">
+          <div className="max-w-6xl mx-auto">
+            {currentView === View.DASHBOARD && (
+              <Dashboard transactions={transactions} onExport={() => {}} onSync={handleSyncAll} isSyncing={isSyncing} theme={currentTheme} />
+            )}
+            {currentView === View.TRANSACTIONS && (
+              <Transactions transactions={transactions} addTransaction={(t) => setTransactions([t, ...transactions])} theme={currentTheme} />
+            )}
+            {currentView === View.SCANNER && (
+              <Scanner onScanComplete={(t) => setTransactions([t, ...transactions])} theme={currentTheme} />
+            )}
+            {currentView === View.ASSISTANT && (
+              <Assistant theme={currentTheme} />
+            )}
+            {currentView === View.VISION_BOARD && (
+              <VisionBoard theme={currentTheme} />
+            )}
+            {currentView === View.SETTINGS && (
+              <Settings theme={currentTheme} onSync={handleSyncAll} isSyncing={isSyncing} onClearData={() => setTransactions([])} themes={THEMES} setTheme={setCurrentTheme} />
+            )}
+          </div>
+        </main>
 
-    {currentView === View.DASHBOARD && (
-      <Dashboard
-        key="dashboard"
-        transactions={transactions}
-        onExport={() => {}}
-        onSync={handleSyncAll}
-        isSyncing={isSyncing}
-        theme={currentTheme}
-      />
-    )}
-
-    {currentView === View.TRANSACTIONS && (
-      <Transactions
-        key="transactions"
-        transactions={transactions}
-        addTransaction={(t) => setTransactions([t, ...transactions])}
-        updateTransaction={(t) =>
-          setTransactions(transactions.map(x => x.id === t.id ? t : x))
-        }
-        deleteTransaction={(id) =>
-          setTransactions(transactions.filter(x => x.id !== id))
-        }
-        theme={currentTheme}
-      />
-    )}
-
-    {currentView === View.SCANNER && (
-      <Scanner
-        key="scanner"
-        onScanComplete={(t) => setTransactions([t, ...transactions])}
-        theme={currentTheme}
-      />
-    )}
-
-    {currentView === View.ASSISTANT && (
-      <Assistant
-        key="assistant"
-        theme={currentTheme}
-      />
-    )}
-
-    {currentView === View.VISION_BOARD && (
-      <VisionBoard
-        key="vision"
-        theme={currentTheme}
-      />
-    )}
-
-    {currentView === View.SETTINGS && (
-      <Settings
-        key="settings"
-        theme={currentTheme}
-        onSync={handleSyncAll}
-        isSyncing={isSyncing}
-        onClearData={() => setTransactions([])}
-        themes={THEMES}
-        setTheme={setCurrentTheme}
-      />
-    )}
-
-  </div>
-</main>
-
-{/* BOTONERA MÓVIL FINAL */}
-<nav className="md:hidden fixed bottom-0 left-3 right-3 bg-navy/95 backdrop-blur-xl border border-white/10 px-4 py-1.5 flex justify-between items-center z-50 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.8)]">
-
-  <button
-    onClick={() => setView(View.DASHBOARD)}
-    className={`flex flex-col items-center ${
-      currentView === View.DASHBOARD ? currentTheme.text : 'text-gray-500'
-    }`}
-  >
-    <LayoutDashboard size={22} />
-    <span className="text-[9px] font-bold uppercase mt-1">Panel</span>
-  </button>
-
-  <button
-    onClick={() => setView(View.TRANSACTIONS)}
-    className={`flex flex-col items-center ${
-      currentView === View.TRANSACTIONS ? currentTheme.text : 'text-gray-500'
-    }`}
-  >
-    <Receipt size={22} />
-    <span className="text-[9px] font-bold uppercase mt-1">Libro</span>
-  </button>
-
-  <div className="relative -translate-y-4">
-    <button
-      onClick={() => setView(View.SCANNER)}
-      className={`bg-gradient-to-tr ${currentTheme.gradient} p-3.5 rounded-full border-2 border-white/20 shadow-lg ${currentTheme.text}`}
-    >
-      <ScanLine size={24} />
-    </button>
-  </div>
-
-  <button
-    onClick={() => setView(View.ASSISTANT)}
-    className={`flex flex-col items-center ${
-      currentView === View.ASSISTANT ? currentTheme.text : 'text-gray-500'
-    }`}
-  >
-    <Bot size={22} />
-    <span className="text-[9px] font-bold uppercase mt-1">Asesor</span>
-  </button>
-
-  <button
-    onClick={() => setView(View.VISION_BOARD)}
-    className={`flex flex-col items-center ${
-      currentView === View.VISION_BOARD ? currentTheme.text : 'text-gray-500'
-    }`}
-  >
-    <ImageIcon size={22} />
-    <span className="text-[9px] font-bold uppercase mt-1">Metas</span>
-  </button>
-  </nav>
-      
-      </div>   {/* contenedor principal */}
-    </div>);     {/* wrapper general */}
+        <nav className="md:hidden fixed bottom-0 left-3 right-3 bg-navy/95 backdrop-blur-xl border border-white/10 px-4 py-1.5 flex justify-between items-center z-50 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.8)]">
+          <button onClick={() => setView(View.DASHBOARD)} className={`flex flex-col items-center ${currentView === View.DASHBOARD ? currentTheme.text : 'text-gray-500'}`}>
+            <LayoutDashboard size={22} />
+            <span className="text-[9px] font-bold uppercase mt-1">Panel</span>
+          </button>
+          <button onClick={() => setView(View.TRANSACTIONS)} className={`flex flex-col items-center ${currentView === View.TRANSACTIONS ? currentTheme.text : 'text-gray-500'}`}>
+            <Receipt size={22} />
+            <span className="text-[9px] font-bold uppercase mt-1">Libro</span>
+          </button>
+          <div className="relative -translate-y-4">
+            <button onClick={() => setView(View.SCANNER)} className={`bg-gradient-to-tr ${currentTheme.gradient} p-3.5 rounded-full border-2 border-white/20 shadow-lg ${currentTheme.text}`}>
+              <ScanLine size={24} />
+            </button>
+          </div>
+          <button onClick={() => setView(View.ASSISTANT)} className={`flex flex-col items-center ${currentView === View.ASSISTANT ? currentTheme.text : 'text-gray-500'}`}>
+            <Bot size={22} />
+            <span className="text-[9px] font-bold uppercase mt-1">Asesor</span>
+          </button>
+          <button onClick={() => setView(View.VISION_BOARD)} className={`flex flex-col items-center ${currentView === View.VISION_BOARD ? currentTheme.text : 'text-gray-500'}`}>
+            <ImageIcon size={22} />
+            <span className="text-[9px] font-bold uppercase mt-1">Metas</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  );
 };
-
 
 export default App;

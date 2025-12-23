@@ -23,9 +23,15 @@ const Assistant: React.FC<AssistantProps> = ({ theme }) => {
   const audioContextRef = useRef<AudioContext | null>(null);
 
   // Auto scroll chat
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+ // Cambia tu useEffect por este en Assistant.tsx
+useEffect(() => {
+  if (messagesEndRef.current) {
+    messagesEndRef.current.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'nearest' // <--- ESTO evita que el título se desplace
+    });
+  }
+}, [messages]);
 
   // Handle Text Chat
   const handleSend = async () => {
