@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Transaction, TransactionType, AppTheme } from '../types';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { ArrowUpRight, ArrowDownRight, Calendar as CalendarIcon } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -19,117 +18,81 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, theme }) => {
   }, [transactions]);
 
   const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val);
-
-  const getFontSizeClass = (val: string) => {
-    const len = val.length;
-    if (len > 20) return 'text-lg sm:text-xl lg:text-2xl';
-    if (len > 16) return 'text-xl sm:text-2xl lg:text-3xl';
-    if (len > 12) return 'text-2xl sm:text-3xl lg:text-[2.25rem]';
-    return 'text-3xl sm:text-4xl lg:text-[2.5rem]';
-  };
-
-  const balanceString = formatCurrency(totals.balance);
+    new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(val);
 
   return (
-    <div className="space-y-10 animate-fade-in pb-20">
-      <div className="flex justify-between items-end border-b border-white/5 pb-8">
-        <div>
-            <p className={`text-[10px] uppercase font-bold tracking-[0.4em] mb-2 opacity-60 ${theme.text}`}>Estatus Financiero</p>
-            <h2 className="text-4xl font-executive font-bold flex items-center gap-5">
-              <CalendarIcon className={theme.text} size={32} /> Patrimonio
-            </h2>
+    <div className="space-y-6 pb-20">
+      {/* TARJETA PRINCIPAL: BALANCE TOTAL (EFECTO ORO DUBÁI) */}
+      <div className="relative overflow-hidden rounded-[2rem] border border-gold-500/30 bg-gradient-to-b from-navy/80 to-midnight p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+        <div className="absolute top-0 right-0 p-6 opacity-10">
+          <Wallet size={120} className="text-gold-500" />
+        </div>
+        
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-gold-500/60 mb-2">Balance Total</p>
+        <h2 className="text-4xl sm:text-5xl font-serif font-bold gold-text-gradient tracking-tight">
+          {formatCurrency(totals.balance)}
+        </h2>
+        
+        <div className="mt-6 flex gap-4">
+          <div className="flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 border border-emerald-500/20">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+            <span className="text-[10px] font-bold text-emerald-500 uppercase">Activo</span>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className={`col-span-1 md:col-span-1 p-8 md:p-10 rounded-[2.5rem] border ${theme.secondary} bg-navy/40 relative overflow-hidden group shadow-2xl transition-all hover:scale-[1.01] flex flex-col justify-center min-h-[160px]`}>
-          <div className={`absolute top-0 right-0 w-40 h-40 ${theme.primary} opacity-5 rounded-full -translate-y-10 translate-x-10 group-hover:scale-125 transition-transform duration-1000`}></div>
-          <p className="text-xs font-bold uppercase tracking-widest opacity-40 mb-3">Balance Consolidado</p>
-          <div className="relative">
-            <h3 className={`font-executive font-bold text-white drop-shadow-lg leading-none transition-all duration-300 ${getFontSizeClass(balanceString)}`}>
-              {balanceString}
-            </h3>
+      {/* GRID DE INGRESOS Y GASTOS (CRYSTAL GLOW) */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* INGRESOS */}
+        <div className="group relative rounded-[1.5rem] border border-white/5 bg-white/[0.03] p-5 backdrop-blur-xl transition-all hover:border-gold-500/30 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
+            <ArrowUpRight size={20} />
           </div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Ingresos</p>
+          <p className="mt-1 text-xl font-serif font-bold text-white tracking-tight leading-none">
+            {formatCurrency(totals.income)}
+          </p>
         </div>
 
-        <div className={`bg-navy/40 p-8 rounded-[2rem] border ${theme.secondary} hover:border-emerald-500/30 transition-all shadow-xl flex flex-col justify-center`}>
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-xs font-bold opacity-40 uppercase tracking-widest">Ingresos</p>
-            <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-500"><ArrowUpRight size={20} /></div>
+        {/* GASTOS */}
+        <div className="group relative rounded-[1.5rem] border border-white/5 bg-white/[0.03] p-5 backdrop-blur-xl transition-all hover:border-rose-500/30 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
+            <ArrowDownRight size={20} />
           </div>
-          <h4 className="text-2xl sm:text-3xl font-executive font-bold text-emerald-500 truncate">{formatCurrency(totals.income)}</h4>
-        </div>
-
-        <div className={`bg-navy/40 p-8 rounded-[2rem] border ${theme.secondary} hover:border-rose-500/30 transition-all shadow-xl flex flex-col justify-center`}>
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-xs font-bold opacity-40 uppercase tracking-widest">Gastos</p>
-            <div className="p-2 bg-rose-500/10 rounded-xl text-rose-500"><ArrowDownRight size={20} /></div>
-          </div>
-          <h4 className="text-2xl sm:text-3xl font-executive font-bold text-rose-500 truncate">{formatCurrency(totals.expense)}</h4>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Gastos</p>
+          <p className="mt-1 text-xl font-serif font-bold text-white tracking-tight leading-none">
+            {formatCurrency(totals.expense)}
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
-        <div className={`lg:col-span-2 bg-navy/20 p-10 rounded-[2.5rem] border ${theme.secondary} shadow-2xl min-w-0`}>
-           <h3 className={`text-sm font-bold uppercase tracking-[0.2em] mb-10 ${theme.text}`}>Distribución de Capital</h3>
-           <div className="h-[280px] w-full" style={{ minHeight: '280px' }}>
-               <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie 
-                      data={[{name: 'Ingresos', value: totals.income || 1}, {name: 'Gastos', value: totals.expense || 0}]} 
-                      cx="50%" cy="50%" 
-                      innerRadius={70} 
-                      outerRadius={90} 
-                      paddingAngle={10} 
-                      dataKey="value"
-                      animationBegin={0}
-                      animationDuration={1200}
-                    >
-                      <Cell fill={theme.id === 'executive' || theme.id === 'royal_blue' ? '#d4af37' : '#9333ea'} stroke="none" />
-                      <Cell fill="#1e293b" stroke="none" />
-                    </Pie>
-                    <Tooltip contentStyle={{backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)'}} />
-                  </PieChart>
-               </ResponsiveContainer>
-           </div>
+      {/* LISTADO DE ÚLTIMOS MOVIMIENTOS (EXECUTIVE STYLE) */}
+      <div className="rounded-[2rem] border border-white/5 bg-navy/40 backdrop-blur-md overflow-hidden shadow-2xl">
+        <div className="border-b border-white/5 p-6 flex justify-between items-center">
+          <h3 className="font-serif text-lg font-bold gold-text-gradient">Movimientos Recientes</h3>
+          <button className="text-[10px] font-bold uppercase tracking-widest text-gold-500 hover:opacity-70 transition-opacity">Ver todo</button>
         </div>
-
-        <div className={`lg:col-span-3 bg-navy/20 rounded-[2.5rem] border ${theme.secondary} overflow-hidden shadow-2xl`}>
-          <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
-              <h3 className={`text-sm font-bold uppercase tracking-[0.2em] ${theme.text}`}>Últimas Operaciones</h3>
-              <span className={`text-[10px] font-bold ${theme.primary} bg-white/5 px-4 py-1.5 rounded-full border border-white/10 text-white uppercase tracking-widest`}>visto reciente</span>
-          </div>
-          <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                  <thead className="bg-white/5 text-[11px] opacity-40 uppercase tracking-[0.2em]">
-                      <tr>
-                          <th className="p-6 font-bold">Fecha</th>
-                          <th className="p-6 font-bold">Concepto</th>
-                          <th className="p-6 text-right font-bold">Importe</th>
-                      </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-sm">
-                      {transactions.slice(0, 7).map((t) => (
-                          <tr key={t.id} className="hover:bg-white/5 transition-all">
-                              <td className="p-6 text-gray-500 font-mono text-xs">{t.date}</td>
-                              <td className="p-6">
-                                <p className="font-semibold text-gray-200">{t.description}</p>
-                                <span className="text-[10px] opacity-40 uppercase tracking-widest">{t.category}</span>
-                              </td>
-                              <td className={`p-6 text-right font-executive font-bold text-xl ${t.type === TransactionType.INCOME ? theme.text : 'text-rose-500'}`}>
-                                  {t.type === TransactionType.INCOME ? '+' : '-'}{formatCurrency(t.amount)}
-                              </td>
-                          </tr>
-                      ))}
-                      {transactions.length === 0 && (
-                        <tr>
-                          <td colSpan={3} className="p-10 text-center text-gray-500 italic">No hay registros aún</td>
-                        </tr>
-                      )}
-                  </tbody>
-              </table>
-          </div>
+        
+        <div className="divide-y divide-white/5">
+          {transactions.slice(0, 5).map((t) => (
+            <div key={t.id} className="flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors">
+              <div className="flex items-center gap-4">
+                <div className={`h-12 w-12 rounded-2xl flex items-center justify-center border border-white/5 ${t.type === TransactionType.INCOME ? 'bg-emerald-500/5 text-emerald-500' : 'bg-rose-500/5 text-rose-500'}`}>
+                  {t.type === TransactionType.INCOME ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                </div>
+                <div>
+                  <p className="font-bold text-gray-200 text-sm">{t.description}</p>
+                  <p className="text-[10px] uppercase tracking-tighter text-gray-500 font-medium">{t.category} • {t.date}</p>
+                </div>
+              </div>
+              <p className={`font-serif font-bold text-lg ${t.type === TransactionType.INCOME ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {t.type === TransactionType.INCOME ? '+' : '-'}{formatCurrency(t.amount)}
+              </p>
+            </div>
+          ))}
+          {transactions.length === 0 && (
+            <div className="p-10 text-center text-gray-500 italic text-sm">No hay registros aún</div>
+          )}
         </div>
       </div>
     </div>
