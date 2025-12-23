@@ -225,5 +225,11 @@ const App: React.FC = () => {
     <ImageIcon size={22} />
     <span className="text-[9px] font-bold uppercase mt-1">Metas</span>
   </button>
+  </nav>
+      
+      </div>   {/* contenedor principal */}
+    </div>);     {/* wrapper general */}
+};
 
-</nav>
+
+export default App;
