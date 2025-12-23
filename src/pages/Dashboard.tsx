@@ -36,7 +36,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, theme }) => {
       <div className="flex justify-between items-end border-b border-white/5 pb-8">
         <div>
             <p className={`text-[10px] uppercase font-bold tracking-[0.4em] mb-2 opacity-60 ${theme.text}`}>Estatus Financiero</p>
-            <h2 className="text-4xl font-executive font-bold text-white flex items-center gap-5">
+            <h2 className="text-4xl font-executive font-bold flex items-center gap-5">
               <CalendarIcon className={theme.text} size={32} /> Patrimonio
             </h2>
         </div>
