@@ -1,5 +1,4 @@
-// src/MobileHeader.tsx
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { View, AppTheme } from './types';
 import { Menu, Settings as SettingsIcon } from 'lucide-react';
 
@@ -16,47 +15,33 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
   onMenuClick,
   onSettingsClick
 }) => {
-  const renderCount = useRef(0);
-  renderCount.current += 1;
-
-  useEffect(() => {
-    console.log(`🔄 MobileHeader. Vista: ${currentView}, Render #: ${renderCount.current}`);
-  }, [currentView]);
-
   return (
     <>
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 99999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '1.5rem',
-        backgroundColor: 'rgba(2, 6, 23, 0.6)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        height: '80px',
-        boxSizing: 'border-box'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }} onClick={onMenuClick}>
-          <Menu size={24} />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h1 style={{ margin: 0 }}>FinanzaAI</h1>
-            <span style={{ fontSize: '10px' }}>
-              {currentTheme.name} | Vista: {currentView}
+      <header className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-between px-6 bg-midnight/60 backdrop-blur-xl border-b border-white/10 h-20 box-border">
+        <div className="flex items-center gap-4 cursor-pointer group" onClick={onMenuClick}>
+          <div className="p-2 rounded-xl bg-white/5 border border-white/10 group-active:scale-95 transition-transform">
+            <Menu size={20} className="text-gold-400" />
+          </div>
+          <div className="flex flex-col">
+            <h1 className="gold-text-gradient font-executive text-xl font-bold tracking-tight leading-none">
+              FinanzaAI
+            </h1>
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold-300/60 mt-1">
+              {currentView.replace('_', ' ')} • {currentTheme.name}
             </span>
           </div>
         </div>
 
-        <button onClick={onSettingsClick}>
-          <SettingsIcon size={24} />
+        <button 
+          onClick={onSettingsClick}
+          className="p-2.5 rounded-full bg-gradient-to-tr from-white/5 to-transparent border border-white/10 text-gray-400 active:rotate-90 transition-all duration-500"
+        >
+          <SettingsIcon size={20} />
         </button>
-      </div>
+      </header>
 
-      <div style={{ height: '80px' }} />
+      {/* Espaciador para que el contenido no se meta debajo del header */}
+      <div className="h-20 w-full flex-shrink-0" />
     </>
   );
 };

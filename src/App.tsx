@@ -32,37 +32,41 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Guardado automático
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
   }, [transactions]);
 
-  // ARREGLO PARA QUE EL TÍTULO NO SE CORTE AL CAMBIAR DE VISTA
   useEffect(() => {
     const mainElement = document.querySelector('main');
-    if (mainElement) {
-      mainElement.scrollTo(0, 0);
-    }
+    if (mainElement) mainElement.scrollTo(0, 0);
   }, [currentView]);
 
   const handleSyncAll = async () => {
     const sheetUrl = localStorage.getItem('googleSheetUrl');
-    if (!sheetUrl) {
-      setView(View.SETTINGS);
-      return;
-    }
+    if (!sheetUrl) { setView(View.SETTINGS); return; }
     setIsSyncing(true);
     for (const t of [...transactions].reverse()) {
       try {
-        await fetch(sheetUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          body: JSON.stringify({ ...t, action: 'create' }),
-        });
+        await fetch(sheetUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ ...t, action: 'create' }) });
         await new Promise(r => setTimeout(r, 600));
       } catch {}
     }
     setIsSyncing(false);
+  };
+
+  // FUNCIONES DE CONTROL DE TRANSACCIONES
+  const handleAddOrUpdate = (t: Transaction) => {
+    setTransactions(prev => {
+      const exists = prev.find(item => item.id === t.id);
+      if (exists) {
+        return prev.map(item => item.id === t.id ? t : item);
+      }
+      return [t, ...prev];
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    setTransactions(prev => prev.filter(t => t.id !== id));
   };
 
   return (
@@ -88,30 +92,32 @@ const App: React.FC = () => {
           onSettingsClick={() => setView(View.SETTINGS)}
         />
         
-        <main className="flex-1 overflow-y-auto p-4 md:p-12 pb-28 md:pb-12">
+        <main className="flex-1 overflow-y-auto p-4 md:p-12 pb-28 md:pb-12 text-white">
           <div className="max-w-6xl mx-auto">
             {currentView === View.DASHBOARD && (
               <Dashboard transactions={transactions} onExport={() => {}} onSync={handleSyncAll} isSyncing={isSyncing} theme={currentTheme} />
             )}
             {currentView === View.TRANSACTIONS && (
-              <Transactions transactions={transactions} addTransaction={(t) => setTransactions([t, ...transactions])} theme={currentTheme} />
+              <Transactions 
+                transactions={transactions} 
+                addTransaction={handleAddOrUpdate} 
+                updateTransaction={handleAddOrUpdate}
+                deleteTransaction={handleDelete}
+                theme={currentTheme} 
+              />
             )}
             {currentView === View.SCANNER && (
-              <Scanner onScanComplete={(t) => setTransactions([t, ...transactions])} theme={currentTheme} />
+              <Scanner onScanComplete={handleAddOrUpdate} theme={currentTheme} />
             )}
-            {currentView === View.ASSISTANT && (
-              <Assistant theme={currentTheme} />
-            )}
-            {currentView === View.VISION_BOARD && (
-              <VisionBoard theme={currentTheme} />
-            )}
+            {currentView === View.ASSISTANT && <Assistant theme={currentTheme} />}
+            {currentView === View.VISION_BOARD && <VisionBoard theme={currentTheme} />}
             {currentView === View.SETTINGS && (
               <Settings theme={currentTheme} onSync={handleSyncAll} isSyncing={isSyncing} onClearData={() => setTransactions([])} themes={THEMES} setTheme={setCurrentTheme} />
             )}
           </div>
         </main>
 
-        <nav className="md:hidden fixed bottom-0 left-3 right-3 bg-navy/95 backdrop-blur-xl border border-white/10 px-4 py-1.5 flex justify-between items-center z-50 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.8)]">
+        <nav className="md:hidden fixed bottom-0 left-3 right-3 bg-navy/95 backdrop-blur-xl border border-white/10 px-4 py-1.5 flex justify-between items-center z-50 rounded-t-2xl">
           <button onClick={() => setView(View.DASHBOARD)} className={`flex flex-col items-center ${currentView === View.DASHBOARD ? currentTheme.text : 'text-gray-500'}`}>
             <LayoutDashboard size={22} />
             <span className="text-[9px] font-bold uppercase mt-1">Panel</span>
@@ -121,7 +127,7 @@ const App: React.FC = () => {
             <span className="text-[9px] font-bold uppercase mt-1">Libro</span>
           </button>
           <div className="relative -translate-y-4">
-            <button onClick={() => setView(View.SCANNER)} className={`bg-gradient-to-tr ${currentTheme.gradient} p-3.5 rounded-full border-2 border-white/20 shadow-lg ${currentTheme.text}`}>
+            <button onClick={() => setView(View.SCANNER)} className={`bg-gradient-to-tr ${currentTheme.gradient} p-3.5 rounded-full border-2 border-white/20 text-white`}>
               <ScanLine size={24} />
             </button>
           </div>
