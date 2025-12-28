@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Transaction, TransactionType, AppTheme } from '../types';
 import { categorizeTransaction } from '../services/geminiService';
-import { Plus, Loader2, Trash2, Edit2, Check } from 'lucide-react';
+import { Plus, Loader2, Trash2, Edit2, Check, X } from 'lucide-react';
 
 interface TransactionsProps {
   transactions: Transaction[];
@@ -20,19 +20,42 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   const formatCurrency = (val: number) => 
     new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
 
-  // Recuperado: Lógica de detección de signo
+  // Auto-reset del botón de borrar tras 3 segundos
   useEffect(() => {
-    if (!amount) return;
+    if (deleteConfirmId) {
+      const timer = setTimeout(() => setDeleteConfirmId(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [deleteConfirmId]);
+
+  // Cerrar edición si pulsas fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (editingId && formRef.current && !formRef.current.contains(event.target as Node)) {
+        setEditingId(null); setDescription(''); setAmount(''); setCategory('');
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [editingId]);
+
+  useEffect(() => {
+    if (!amount || editingId) return;
     const val = parseFloat(amount);
     if (!isNaN(val)) setType(val < 0 ? TransactionType.EXPENSE : TransactionType.INCOME);
-  }, [amount]);
+  }, [amount, editingId]);
 
-  // Recuperado: Scroll suave al editar
   const handleEditClick = (t: Transaction) => {
+    if (editingId === t.id) {
+        setEditingId(null); setDescription(''); setAmount(''); setCategory('');
+        return;
+    }
+    setDeleteConfirmId(null);
     setEditingId(t.id);
     setDescription(t.description);
     const displayAmount = t.type === TransactionType.EXPENSE ? -Math.abs(t.amount) : t.amount;
@@ -69,11 +92,18 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
 
   return (
     <div className="space-y-6 animate-fade-in pb-16">
-      <h2 className="gold-text-gradient font-executive text-3xl font-bold">
-        {editingId ? '✏️ Ajustar Operación' : 'Libro Contable'}
-      </h2>
+      <div className="flex justify-between items-center">
+        <h2 className="gold-text-gradient font-executive text-3xl font-bold">
+          {editingId ? '✏️ Edición VIP' : 'Libro Contable'}
+        </h2>
+        {editingId && (
+          <button onClick={() => { setEditingId(null); setDescription(''); setAmount(''); }} className="text-[10px] font-black uppercase text-rose-500 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">
+            Cancelar
+          </button>
+        )}
+      </div>
 
-      <div className={`p-6 rounded-3xl border bg-white/5 backdrop-blur-md border-gold-500/30`}>
+      <div ref={formRef} className={`p-6 rounded-3xl border transition-all duration-500 ${editingId ? 'bg-gold-500/10 border-gold-500 shadow-[0_0_30px_rgba(212,175,55,0.2)]' : 'bg-white/5 border-gold-500/30'}`}>
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div className="md:col-span-2 space-y-2">
             <label className="text-[10px] text-gold-300/60 uppercase font-black px-2 tracking-widest">Concepto</label>
@@ -83,8 +113,8 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
             <label className="text-[10px] text-gold-300/60 uppercase font-black px-2 tracking-widest">Importe</label>
             <input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-serif outline-none focus:border-gold-500/50" />
           </div>
-          <button type="submit" disabled={loading} className="h-[50px] rounded-xl flex items-center justify-center gap-2 font-black uppercase text-[10px] bg-gold-600 text-white shadow-lg tracking-widest">
-            {loading ? <Loader2 className="animate-spin" /> : <Plus size={16} />} {editingId ? 'Actualizar' : 'Registrar'}
+          <button type="submit" disabled={loading} className="h-[50px] rounded-xl flex items-center justify-center gap-2 font-black uppercase text-[10px] bg-gold-600 text-white shadow-lg">
+            {loading ? <Loader2 className="animate-spin" /> : editingId ? 'Guardar Cambios' : 'Registrar'}
           </button>
         </form>
       </div>
@@ -102,7 +132,7 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
             </thead>
             <tbody className="divide-y divide-white/5">
               {transactions.map((t) => (
-                <tr key={t.id} className="hover:bg-white/[0.02]">
+                <tr key={t.id} className={`transition-colors ${editingId === t.id ? 'bg-gold-500/5' : 'hover:bg-white/[0.02]'}`}>
                   <td className="p-6 text-gray-500 font-serif text-xs">{t.date}</td>
                   <td className="p-6">
                     <p className="text-white font-bold text-sm">{t.description}</p>
@@ -113,11 +143,11 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
                   </td>
                   <td className="p-6 text-right">
                     <div className="flex justify-end gap-2">
-                      <button onClick={() => handleEditClick(t)} className="p-2 bg-white/5 rounded-lg text-gray-400 hover:text-gold-500"><Edit2 size={14} /></button>
+                      <button onClick={() => handleEditClick(t)} className={`p-2 rounded-lg transition-all ${editingId === t.id ? 'bg-gold-500 text-black' : 'bg-white/5 text-gray-400 hover:text-gold-500'}`}><Edit2 size={14} /></button>
                       {deleteConfirmId === t.id ? (
-                        <button onClick={() => { deleteTransaction?.(t.id); setDeleteConfirmId(null); }} className="p-2 bg-rose-600 rounded-lg text-white"><Check size={14} /></button>
+                        <button onClick={() => { deleteTransaction?.(t.id); setDeleteConfirmId(null); }} className="p-2 bg-rose-600 rounded-lg text-white animate-pulse"><Check size={14} /></button>
                       ) : (
-                        <button onClick={() => setDeleteConfirmId(t.id)} className="p-2 bg-white/5 rounded-lg text-gray-400 hover:text-rose-500"><Trash2 size={14} /></button>
+                        <button onClick={() => { setDeleteConfirmId(t.id); setEditingId(null); }} className="p-2 bg-white/5 rounded-lg text-gray-400 hover:text-rose-500"><Trash2 size={14} /></button>
                       )}
                     </div>
                   </td>
