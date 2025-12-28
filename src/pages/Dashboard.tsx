@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Transaction, TransactionType, AppTheme } from '../types';
-import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -27,33 +27,37 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, theme }) => {
         <h1 className="gold-text-gradient font-executive text-4xl font-bold">Patrimonio</h1>
       </div>
 
-      {/* BALANCE NEGRO OBSIDIANA */}
-      <div className="relative overflow-hidden rounded-[2.5rem] border border-gold-500/30 bg-black p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-gold-500/5 to-transparent pointer-events-none" />
+      {/* BALANCE: AZUL NAVY PROFUNDO (Recuperado y mejorado) */}
+      <div className="relative overflow-hidden rounded-[2.5rem] border border-gold-500/30 bg-gradient-to-br from-[#001f3f] via-[#00050a] to-black p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+        <div className="absolute -top-4 -right-4 opacity-[0.05] rotate-12">
+          <Wallet size={160} className="text-gold-500" />
+        </div>
         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-500/80 mb-3">Patrimonio Neto Total</p>
         <h2 className="text-4xl sm:text-5xl font-serif font-bold gold-text-gradient tracking-tighter">
           {formatCurrency(totals.balance)}
         </h2>
         <div className="mt-8 flex items-center gap-3">
           <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]" />
-          <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Activos Verificados</span>
+          <span className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em]">Activos Verificados</span>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="relative rounded-[2rem] border border-emerald-500/20 bg-emerald-500/[0.03] backdrop-blur-md p-6 shadow-xl active:scale-95 transition-all">
+        {/* INGRESOS: RECUPERADO TU FONDO ELEGANTE */}
+        <div className="relative rounded-[2rem] border border-emerald-500/30 bg-gradient-to-b from-[#0a0f1a] to-black p-6 shadow-[0_10px_40px_rgba(0,0,0,0.7)] active:scale-95 transition-all">
           <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
             <ArrowUpRight size={20} />
           </div>
-          <p className="text-[9px] font-bold uppercase text-white/30 tracking-wider">Ingresos</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Ingresos</p>
           <p className="mt-1 text-2xl font-serif font-bold text-emerald-400">{formatCurrency(totals.income)}</p>
         </div>
 
-        <div className="relative rounded-[2rem] border border-rose-500/20 bg-rose-500/[0.03] backdrop-blur-md p-6 shadow-xl active:scale-95 transition-all">
+        {/* GASTOS: RECUPERADO TU FONDO ELEGANTE */}
+        <div className="relative rounded-[2rem] border border-rose-500/30 bg-gradient-to-b from-[#0f0a0a] to-black p-6 shadow-[0_10px_40px_rgba(0,0,0,0.7)] active:scale-95 transition-all">
           <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
             <ArrowDownRight size={20} />
           </div>
-          <p className="text-[9px] font-bold uppercase text-white/30 tracking-wider">Gastos</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Gastos</p>
           <p className="mt-1 text-2xl font-serif font-bold text-rose-400">{formatCurrency(totals.expense)}</p>
         </div>
       </div>
