@@ -21,12 +21,13 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, theme }) => {
     new Intl.NumberFormat('es-ES', { 
       style: 'currency', 
       currency: 'EUR',
-      minimumFractionDigits: 2 
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(val);
 
   return (
     <div className="space-y-6 pb-20 animate-fade-in">
-      {/* TÍTULO DE SECCIÓN */}
+      {/* TÍTULO DE SECCIÓN: PATRIMONIO */}
       <div className="mb-8">
         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 mb-1">Resumen de Cuenta</p>
         <h1 className="gold-text-gradient font-executive text-4xl font-bold">Patrimonio</h1>
@@ -45,26 +46,26 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, theme }) => {
         </div>
       </div>
 
-      {/* GRID DE INGRESOS Y GASTOS CON BORDES DEFINIDOS */}
+      {/* GRID DE INGRESOS Y GASTOS - ESTILO DUBÁI PREMIUM */}
       <div className="grid grid-cols-2 gap-4">
         {/* Tarjeta Ingresos */}
-        <div className="relative rounded-[2rem] border border-emerald-500/20 bg-white/5 p-6 backdrop-blur-2xl shadow-xl transition-all">
-          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/20">
+        <div className="relative rounded-[2rem] border border-emerald-500/20 bg-white/[0.03] p-6 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all active:scale-95">
+          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
             <ArrowUpRight size={20} />
           </div>
-          <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Ingresos</p>
-          <p className="mt-1 text-xl font-serif font-bold text-white tracking-tight">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Ingresos</p>
+          <p className="mt-1 text-2xl font-serif font-bold text-emerald-400 tracking-tight">
             {formatCurrency(totals.income)}
           </p>
         </div>
 
         {/* Tarjeta Gastos */}
-        <div className="relative rounded-[2rem] border border-rose-500/20 bg-white/5 p-6 backdrop-blur-2xl shadow-xl transition-all">
-          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/20">
+        <div className="relative rounded-[2rem] border border-rose-500/20 bg-white/[0.03] p-6 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all active:scale-95">
+          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
             <ArrowDownRight size={20} />
           </div>
-          <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Gastos</p>
-          <p className="mt-1 text-xl font-serif font-bold text-white tracking-tight">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Gastos</p>
+          <p className="mt-1 text-2xl font-serif font-bold text-rose-400 tracking-tight">
             {formatCurrency(totals.expense)}
           </p>
         </div>
