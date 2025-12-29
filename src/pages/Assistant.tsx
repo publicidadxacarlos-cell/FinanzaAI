@@ -175,15 +175,15 @@ const Assistant: React.FC<AssistantProps> = ({ theme }) => {
 
       {/* Input Area */}
       <div className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Pregunta sobre finanzas, bolsa, o pide consejos..."
-          disabled={isLive} // Disable text input during live voice mode to avoid confusion
-          className="flex-1 bg-dark border border-gray-700 rounded-xl px-4 text-white focus:outline-none focus:border-white/50 disabled:opacity-50"
-        />
+       <input
+  type="text"
+  value={input}
+  onChange={(e) => setInput(e.target.value)}
+  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+  placeholder="Pregunta sobre finanzas, bolsa, o pide consejos..."
+  disabled={isLive}
+  className="flex-1 bg-slate-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 disabled:opacity-50"
+/>
         <button 
           onClick={handleSend}
           disabled={isLive || loading || !input}

@@ -8,7 +8,7 @@ import {
 } from "@google/genai";
 
 // Clave de API centralizada
-const API_KEY = import.meta.env.VITE_GOOGLE_GENAI_API_KEY;
+const API_KEY = (import.meta as any).env.VITE_GOOGLE_GENAI_API_KEY;
 
 // ---------------------------------------------------------
 // Helpers para Audio/Video
@@ -117,7 +117,7 @@ export const analyzeReceipt = async (base64Image: string): Promise<{total: numbe
 export const getFinancialAdvice = async (history: {role: string, text: string}[], message: string) => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-1.5-flash',
     contents: [...history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', parts: [{ text: h.text }] })), { role: 'user', parts: [{ text: message }] }],
     config: {
         systemInstruction: "Eres un asesor financiero de alto nivel. Sé elegante, breve y muy útil."
@@ -130,7 +130,7 @@ export const getFinancialAdvice = async (history: {role: string, text: string}[]
 export const getMarketNews = async (query: string): Promise<GenerateContentResponse> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-1.5-flash',
     contents: query,
     config: { tools: [{ googleSearch: {} }] },
   });

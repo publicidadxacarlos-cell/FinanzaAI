@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FinanzaAI">
     <meta name="theme-color" content="#020617">
@@ -39,7 +40,6 @@
       }
     </script>
     <style>
-      /* --- SOLUCIÓN ÚLTIMO RECURSO: SOBREDIMENSIÓN --- */
       :root {
         background-color: #020617;
       }
@@ -55,8 +55,7 @@
         -webkit-tap-highlight-color: transparent; 
         background-color: #020617;
         width: 100%;
-        /* Estiramos el cuerpo un 5% más para que "entre" bajo el marco del móvil */
-        height: 105%; 
+        height: 100%; /* Ajustado al 100% para evitar saltos raros */
         overflow: hidden;
         position: fixed;
         top: 0;
@@ -64,7 +63,6 @@
         overscroll-behavior: none;
         padding-bottom: env(safe-area-inset-bottom);
       }
-      /* ------------------------------------- */
 
       /* Scrollbars elegantes */
       ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -73,17 +71,20 @@
 
       #root {
         background-color: #020617;
-        height: 100vh; /* El root se queda al 100 para no mover los botones */
+        height: 100vh;
         width: 100%;
       }
 
       .theme-executive { font-family: 'Montserrat', sans-serif; }
       .theme-executive .font-executive { font-family: 'Cinzel', serif; }
       
+      /* Corregido para evitar error de consola de background-clip */
       .gold-text-gradient {
         background: linear-gradient(to bottom, #f3e5ab 0%, #d4af37 50%, #b8860b 100%);
+        background-clip: text;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        color: #d4af37; /* Fallback */
         filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.2));
       }
 
@@ -107,8 +108,7 @@
       }
     }
     </script>
-    <link rel="stylesheet" href="/index.css">
-  </head>
+    </head>
   <body class="bg-midnight text-white font-sans antialiased overflow-hidden selection:bg-gold-500 selection:text-black min-h-screen fixed inset-0">
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>
