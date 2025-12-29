@@ -7,11 +7,13 @@ import {
   GenerateContentResponse
 } from "@google/genai";
 
+// Clave de API centralizada
+const API_KEY = import.meta.env.VITE_GOOGLE_GENAI_API_KEY;
+
 // ---------------------------------------------------------
 // Helpers para Audio/Video
 // ---------------------------------------------------------
 
-// Guideline: Manual implementation of base64 encoding
 export function encode(bytes: Uint8Array) {
   let binary = '';
   const len = bytes.byteLength;
@@ -21,7 +23,6 @@ export function encode(bytes: Uint8Array) {
   return btoa(binary);
 }
 
-// Guideline: Manual implementation of base64 decoding
 export function decode(base64: string) {
   const binaryString = atob(base64);
   const len = binaryString.length;
@@ -32,9 +33,6 @@ export function decode(base64: string) {
   return bytes;
 }
 
-/**
- * Decodes raw PCM audio data into an AudioBuffer.
- */
 export async function decodeAudioData(
   data: Uint8Array,
   ctx: AudioContext,
@@ -54,9 +52,6 @@ export async function decodeAudioData(
   return buffer;
 }
 
-/**
- * Creates a PCM Blob from Float32Array for Live API input.
- */
 export function createPcmBlob(data: Float32Array): Blob {
   const l = data.length;
   const int16 = new Int16Array(l);
@@ -69,48 +64,30 @@ export function createPcmBlob(data: Float32Array): Blob {
   };
 }
 
-/**
- * Alias for supporting existing code in Assistant.tsx
- */
 export const base64ToUint8Array = decode;
 
 // ---------------------------------------------------------
 // Servicios de Texto y Análisis
 // ---------------------------------------------------------
 
-/**
- * Categorizes a transaction description using our secure API route.
- */
 export const categorizeTransaction = async (description: string): Promise<string> => {
   try {
-    // Llama a nuestra API route segura en lugar de directamente a Gemini
     const response = await fetch('/api/categorize', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ description }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error:', response.status, errorText);
-      return "Varios";
-    }
-
+    if (!response.ok) return "Varios";
     const data = await response.json();
     return data.category || "Varios";
   } catch (error) {
-    console.error('Error categorizing transaction:', error);
-    return "Varios"; // Valor por defecto si falla
+    return "Varios";
   }
 };
 
-/**
- * Analyzes a receipt image using Gemini 3 Flash and returns structured data.
- */
 export const analyzeReceipt = async (base64Image: string): Promise<{total: number, date: string, merchant: string, category: string}> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
   
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
@@ -137,11 +114,8 @@ export const analyzeReceipt = async (base64Image: string): Promise<{total: numbe
   return JSON.parse(response.text || "{}");
 };
 
-/**
- * Provides financial advice based on chat history using Gemini 3 Pro.
- */
 export const getFinancialAdvice = async (history: {role: string, text: string}[], message: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: [...history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', parts: [{ text: h.text }] })), { role: 'user', parts: [{ text: message }] }],
@@ -153,17 +127,12 @@ export const getFinancialAdvice = async (history: {role: string, text: string}[]
   return response.text;
 };
 
-/**
- * Fetches market news using Gemini 3 Pro with Google Search grounding.
- */
 export const getMarketNews = async (query: string): Promise<GenerateContentResponse> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: query,
-    config: {
-      tools: [{ googleSearch: {} }],
-    },
+    config: { tools: [{ googleSearch: {} }] },
   });
   return response;
 };
@@ -172,11 +141,8 @@ export const getMarketNews = async (query: string): Promise<GenerateContentRespo
 // Generación de Medios
 // ---------------------------------------------------------
 
-/**
- * Generates a goal image using Gemini 2.5 Flash Image.
- */
 export const generateGoalImage = async (prompt: string, aspectRatio: string = "1:1") => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: API_KEY });
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: { parts: [{ text: prompt }] },
@@ -193,11 +159,8 @@ export const generateGoalImage = async (prompt: string, aspectRatio: string = "1
     return null;
 };
 
-/**
- * Edits an existing goal image using Gemini 2.5 Flash Image.
- */
 export const editGoalImage = async (base64Image: string, prompt: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: {
@@ -213,11 +176,8 @@ export const editGoalImage = async (base64Image: string, prompt: string) => {
   return null;
 };
 
-/**
- * Generates a video for a goal using Veo 3.1 Fast.
- */
 export const generateGoalVideo = async (prompt: string, aspectRatio: string = "16:9") => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
   let operation = await ai.models.generateVideos({
     model: 'veo-3.1-fast-generate-preview',
     prompt: prompt,
@@ -234,22 +194,18 @@ export const generateGoalVideo = async (prompt: string, aspectRatio: string = "1
   }
 
   const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-  // Return URL with API key appended for direct playback
-  return `${downloadLink}&key=${process.env.API_KEY}`;
+  return `${downloadLink}&key=${API_KEY}`;
 };
 
 // ---------------------------------------------------------
 // Live API Session
 // ---------------------------------------------------------
 
-/**
- * Establishes a Gemini Live session for voice interaction.
- */
 export const connectLiveSession = async (
   onAudioData: (buffer: AudioBuffer) => void,
   onClose: () => void
 ) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
   const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
 
   const sessionPromise = ai.live.connect({
@@ -270,7 +226,6 @@ export const connectLiveSession = async (
       },
       onerror: (e) => console.error("Live session error", e),
       onclose: () => {
-        console.log("Live session closed");
         onClose();
       }
     },
