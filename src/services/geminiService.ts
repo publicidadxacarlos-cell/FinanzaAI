@@ -7,8 +7,9 @@ import {
   GenerateContentResponse
 } from "@google/genai";
 
-// Clave de API centralizada
+// Claves de API centralizadas
 const API_KEY = (import.meta as any).env.VITE_GOOGLE_GENAI_API_KEY;
+const OPENAI_API_KEY = (import.meta as any).env.VITE_OPENAI_API_KEY;
 
 // ---------------------------------------------------------
 // Helpers para Audio/Video (Lógica original completa)
@@ -117,10 +118,11 @@ export const analyzeReceipt = async (base64Image: string): Promise<{total: numbe
 export const getFinancialAdvice = async (history: {role: string, text: string}[], message: string) => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-lite',
+    model: 'gemini-2.5-flash', // Cambiado a flash normal para mejores herramientas
     contents: [...history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', parts: [{ text: h.text }] })), { role: 'user', parts: [{ text: message }] }],
     config: {
-        systemInstruction: "Eres un asesor financiero de alto nivel. Sé elegante, breve y muy útil."
+        tools: [{ googleSearch: {} }],
+        systemInstruction: "Eres un asesor financiero de alto nivel. SIEMPRE que te pregunten por valores de mercado (Bitcoin, acciones, etc.), USA GOOGLE SEARCH para dar el dato exacto. NUNCA uses placeholders como [insertar valor]."
     }
   });
 
@@ -138,10 +140,34 @@ export const getMarketNews = async (query: string): Promise<GenerateContentRespo
 };
 
 // ---------------------------------------------------------
-// Generación de Medios (Modelos Especializados)
+// Generación de Medios (Integrando OpenAI para evitar 429)
 // ---------------------------------------------------------
 
 export const generateGoalImage = async (prompt: string, aspectRatio: string = "1:1") => {
+    // Si tienes clave de OpenAI, la usamos para asegurar éxito
+    if (OPENAI_API_KEY) {
+      try {
+        const res = await fetch("https://api.openai.com/v1/images/generations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: "dall-e-3",
+            prompt: `High-quality financial goal visualization: ${prompt}`,
+            n: 1,
+            size: "1024x1024"
+          })
+        });
+        const data = await res.json();
+        return data.data?.[0]?.url || null;
+      } catch (e) {
+        console.error("OpenAI failed, falling back to Gemini", e);
+      }
+    }
+
+    // Fallback a Gemini si falla OpenAI
     const ai = new GoogleGenAI({ apiKey: API_KEY });
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
@@ -177,10 +203,7 @@ export const editGoalImage = async (base64Image: string, prompt: string) => {
 };
 
 export const generateGoalVideo = async (prompt: string, aspectRatio: string = "16:9") => {
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
-  // El modelo Veo se invoca mediante el método específico de generación de video si el SDK lo permite
-  // de lo contrario, mantenemos el fallback a null para no romper la ejecución.
-  return null;
+  return null; 
 };
 
 // ---------------------------------------------------------
@@ -195,7 +218,7 @@ export const connectLiveSession = async (
   const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
 
   const sessionPromise = ai.live.connect({
-    model: 'gemini-2.5-flash', // El modo Live usa el modelo Flash principal
+    model: 'gemini-2.5-flash', 
     callbacks: {
       onopen: () => console.log("Live connection opened"),
       onmessage: async (message: LiveServerMessage) => {
