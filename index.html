@@ -39,32 +39,39 @@
       }
     </script>
     <style>
-      /* --- PARCHE ANTILÍNEA BLANCA --- */
+      /* --- SOLUCIÓN BLOQUEO LÍNEA BLANCA --- */
       :root {
         background-color: #020617;
       }
       html {
         background-color: #020617;
         height: 100%;
+        width: 100%;
         overflow: hidden;
+        position: fixed; /* Evita el desplazamiento elástico del navegador */
       }
-      /* ------------------------------ */
+      
+      body { 
+        -webkit-tap-highlight-color: transparent; 
+        background-color: #020617;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        position: fixed; /* Ancla la app a los bordes reales del dispositivo */
+        overscroll-behavior: none; /* Elimina el rebote que causa la línea blanca */
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      /* ------------------------------------- */
 
       /* Scrollbars elegantes */
       ::-webkit-scrollbar { width: 4px; height: 4px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.2); border-radius: 10px; }
-      
-      body { 
-        -webkit-tap-highlight-color: transparent; 
-        background-color: #020617;
-        overscroll-behavior-y: contain;
-        /* Asegura que el contenido respete la zona segura inferior */
-        padding-bottom: env(safe-area-inset-bottom);
-      }
 
       #root {
         background-color: #020617;
+        height: 100%;
+        width: 100%;
       }
 
       .theme-executive { font-family: 'Montserrat', sans-serif; }
