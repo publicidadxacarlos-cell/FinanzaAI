@@ -8,6 +8,9 @@
     <meta name="apple-mobile-web-app-title" content="FinanzaAI">
     <meta name="theme-color" content="#020617">
     <title>FinanzaAI - Executive Edition</title>
+    
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon-512.png" />
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -18,7 +21,7 @@
               sans: ['Montserrat', 'sans-serif'],
               serif: ['Cinzel', 'serif'],
               display: ['Playfair Display', 'serif'],
-              'executive': ['Cinzel', 'serif'], // ¡IMPORTANTE! Añadido aquí
+              'executive': ['Cinzel', 'serif'],
             },
             colors: {
               midnight: '#020617',
@@ -44,13 +47,12 @@
       body { 
         -webkit-tap-highlight-color: transparent; 
         background-color: #020617;
-        overscroll-behavior-y: contain; /* Evita el 'pull to refresh' accidental */
+        overscroll-behavior-y: contain;
       }
 
       .theme-executive { font-family: 'Montserrat', sans-serif; }
       .theme-executive .font-executive { font-family: 'Cinzel', serif; }
       
-      /* Animación de brillo dorado */
       .gold-text-gradient {
         background: linear-gradient(to bottom, #f3e5ab 0%, #d4af37 50%, #b8860b 100%);
         -webkit-background-clip: text;
@@ -58,7 +60,6 @@
         filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.2));
       }
 
-      /* Animación suave para cambios de vista */
       .animate-fade-in {
         animation: fadeIn 0.4s ease-out;
       }
