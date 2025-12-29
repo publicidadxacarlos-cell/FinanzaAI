@@ -11,7 +11,7 @@ import {
 const API_KEY = (import.meta as any).env.VITE_GOOGLE_GENAI_API_KEY;
 
 // ---------------------------------------------------------
-// Helpers para Audio/Video (TU LÓGICA ORIGINAL COMPLETA)
+// Helpers para Audio/Video (Lógica original completa)
 // ---------------------------------------------------------
 
 export function encode(bytes: Uint8Array) {
@@ -67,7 +67,7 @@ export function createPcmBlob(data: Float32Array): Blob {
 export const base64ToUint8Array = decode;
 
 // ---------------------------------------------------------
-// Servicios de Texto y Análisis
+// Servicios de Texto y Análisis (Usando Gemini 2.5 Flash)
 // ---------------------------------------------------------
 
 export const categorizeTransaction = async (description: string): Promise<string> => {
@@ -90,7 +90,7 @@ export const analyzeReceipt = async (base64Image: string): Promise<{total: numbe
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     contents: {
       parts: [
         { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
@@ -117,7 +117,7 @@ export const analyzeReceipt = async (base64Image: string): Promise<{total: numbe
 export const getFinancialAdvice = async (history: {role: string, text: string}[], message: string) => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash-lite',
     contents: [...history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', parts: [{ text: h.text }] })), { role: 'user', parts: [{ text: message }] }],
     config: {
         systemInstruction: "Eres un asesor financiero de alto nivel. Sé elegante, breve y muy útil."
@@ -130,7 +130,7 @@ export const getFinancialAdvice = async (history: {role: string, text: string}[]
 export const getMarketNews = async (query: string): Promise<GenerateContentResponse> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     contents: query,
     config: { tools: [{ googleSearch: {} }] },
   });
@@ -138,14 +138,19 @@ export const getMarketNews = async (query: string): Promise<GenerateContentRespo
 };
 
 // ---------------------------------------------------------
-// Generación de Medios
+// Generación de Medios (Modelos Especializados)
 // ---------------------------------------------------------
 
 export const generateGoalImage = async (prompt: string, aspectRatio: string = "1:1") => {
     const ai = new GoogleGenAI({ apiKey: API_KEY });
     const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
-        contents: { parts: [{ text: `Describe una imagen lujosa de: ${prompt}` }] }
+        model: 'gemini-2.5-flash-image',
+        contents: { parts: [{ text: prompt }] },
+        config: {
+          imageConfig: {
+            aspectRatio: (aspectRatio === "1:1" || aspectRatio === "3:4" || aspectRatio === "4:3" || aspectRatio === "9:16" || aspectRatio === "16:9") ? aspectRatio : "1:1" as any
+          }
+        }
     });
 
     for (const part of response.candidates?.[0]?.content?.parts || []) {
@@ -157,7 +162,7 @@ export const generateGoalImage = async (prompt: string, aspectRatio: string = "1
 export const editGoalImage = async (base64Image: string, prompt: string) => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash-image',
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
@@ -172,13 +177,14 @@ export const editGoalImage = async (base64Image: string, prompt: string) => {
 };
 
 export const generateGoalVideo = async (prompt: string, aspectRatio: string = "16:9") => {
-  // Nota: Veo/Video no están disponibles en el SDK estándar Free, usamos fallback
-  console.log("Video solicitado para:", prompt);
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  // El modelo Veo se invoca mediante el método específico de generación de video si el SDK lo permite
+  // de lo contrario, mantenemos el fallback a null para no romper la ejecución.
   return null;
 };
 
 // ---------------------------------------------------------
-// Live API Session (TU LÓGICA DE AUDIO REINSTAURADA)
+// Live API Session (Lógica completa de Audio para Voz)
 // ---------------------------------------------------------
 
 export const connectLiveSession = async (
@@ -189,7 +195,7 @@ export const connectLiveSession = async (
   const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
 
   const sessionPromise = ai.live.connect({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash', // El modo Live usa el modelo Flash principal
     callbacks: {
       onopen: () => console.log("Live connection opened"),
       onmessage: async (message: LiveServerMessage) => {

@@ -94,16 +94,16 @@ const Settings: React.FC<SettingsProps> = ({
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in pb-24">
+    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in pb-24 text-slate-200">
       <div className="space-y-2">
         <h2 className="text-3xl font-bold text-white font-executive flex items-center gap-3">
           <Sheet className="text-green-500" /> Configuración
         </h2>
-        <p className="text-gray-400">Gestiona tu conexión y apariencia.</p>
+        <p className="text-slate-400">Gestiona tu conexión y apariencia de forma segura.</p>
       </div>
 
       {/* SECCIÓN: PERSONALIZACIÓN */}
-      <div className="bg-card p-6 rounded-2xl border border-white/5 shadow-xl space-y-6">
+      <div className="bg-slate-900/50 p-6 rounded-2xl border border-white/5 shadow-xl space-y-6">
         <section className="space-y-4">
             <h3 className="text-white font-bold flex items-center gap-2">
                 <Palette className={theme.text} size={20} /> Personalización
@@ -116,7 +116,7 @@ const Settings: React.FC<SettingsProps> = ({
                         className={`group relative flex flex-col items-center gap-2 p-3 rounded-2xl transition-all border ${theme.id === t.id ? 'bg-white/10 border-white/20' : 'bg-transparent border-transparent opacity-60 hover:opacity-100'}`}
                     >
                         <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${t.gradient} border-2 ${theme.id === t.id ? 'border-white' : 'border-white/10'} shadow-lg group-active:scale-95 transition-transform`} />
-                        <span className={`text-[10px] font-bold uppercase tracking-widest ${theme.id === t.id ? 'text-white' : 'text-gray-500'}`}>{t.name}</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest ${theme.id === t.id ? 'text-white' : 'text-slate-500'}`}>{t.name}</span>
                         {theme.id === t.id && (
                             <div className="absolute -top-1 -right-1 bg-white text-black rounded-full p-0.5 shadow-xl">
                                 <CheckCircle size={14} />
@@ -129,28 +129,28 @@ const Settings: React.FC<SettingsProps> = ({
       </div>
 
       {/* SECCIÓN: CONEXIÓN GOOGLE SHEETS */}
-      <div className="bg-card p-6 rounded-2xl border border-white/5 shadow-xl space-y-8">
+      <div className="bg-slate-900/50 p-6 rounded-2xl border border-white/5 shadow-xl space-y-8">
         <section className="space-y-6">
             <h3 className="text-white font-bold flex items-center gap-2">
                 <Database className="text-blue-400" size={20} /> Conexión de Datos
             </h3>
             
             <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Google Sheets Web App URL</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Google Sheets Web App URL</label>
                 <div className="flex flex-col sm:flex-row gap-2">
                     <input 
                         type="text" 
                         value={sheetUrl}
                         onChange={(e) => setSheetUrl(e.target.value)}
                         placeholder="https://script.google.com/macros/s/.../exec"
-                        className="flex-1 bg-dark border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:border-transparent transition-colors"
+                        className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors placeholder:text-slate-600"
                     />
                     <button 
                         onClick={handleSave}
                         className={`${theme.primary} ${theme.hover} text-white px-6 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all`}
                     >
                         {saved ? <CheckCircle size={20} /> : <Save size={20} />}
-                        {saved ? 'Listo' : 'Guardar'}
+                        {saved ? 'Guardado' : 'Guardar'}
                     </button>
                 </div>
                 
@@ -160,7 +160,7 @@ const Settings: React.FC<SettingsProps> = ({
                             <RefreshCw size={20} className={isSyncing ? 'animate-spin text-blue-400' : 'text-blue-400'} />
                             <div>
                                 <h4 className="text-white font-medium">Sincronización Manual</h4>
-                                <p className="text-xs text-gray-400">Envía todo tu historial local a la hoja.</p>
+                                <p className="text-xs text-slate-400">Envía todo tu historial local a la hoja.</p>
                             </div>
                         </div>
                         <button
@@ -178,10 +178,10 @@ const Settings: React.FC<SettingsProps> = ({
         {/* GUÍA DE CONFIGURACIÓN */}
         <section className="pt-8 border-t border-white/5 space-y-4">
             <h3 className="text-white font-bold flex items-center gap-2">
-                <Code className="text-gold-500" size={20} /> Guía de Configuración
+                <Code className="text-amber-500" size={20} /> Guía de Configuración
             </h3>
             
-            <div className="space-y-4 text-sm text-gray-400">
+            <div className="space-y-4 text-sm text-slate-400">
                 <ol className="list-decimal list-inside space-y-2">
                     <li>Crea una nueva <strong>Google Sheet</strong>.</li>
                     <li>Ve a <strong>Extensiones</strong> &gt; <strong>Apps Script</strong>.</li>
@@ -189,7 +189,7 @@ const Settings: React.FC<SettingsProps> = ({
                 </ol>
 
                 <div className="relative group">
-                    <pre className="bg-midnight p-4 rounded-xl border border-white/10 text-[10px] overflow-x-auto text-gold-300/80 font-mono max-h-48">
+                    <pre className="bg-black/50 p-4 rounded-xl border border-white/10 text-[10px] overflow-x-auto text-amber-300/80 font-mono max-h-48">
                         {scriptCode}
                     </pre>
                     <button 
@@ -200,13 +200,6 @@ const Settings: React.FC<SettingsProps> = ({
                         <span className="text-[10px] font-bold uppercase">{copied ? 'Copiado' : 'Copiar'}</span>
                     </button>
                 </div>
-
-                <ol className="list-decimal list-inside space-y-2" start={4}>
-                    <li>Haz clic en <strong>Implementar</strong> &gt; <strong>Nueva implementación</strong>.</li>
-                    <li>Selecciona <strong>Aplicación web</strong>.</li>
-                    <li>En "Quién tiene acceso", selecciona <strong>Cualquiera</strong>.</li>
-                    <li>Copia la <strong>URL de la aplicación web</strong> y pégala arriba.</li>
-                </ol>
             </div>
         </section>
 
