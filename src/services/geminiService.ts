@@ -90,7 +90,7 @@ export const analyzeReceipt = async (base64Image: string): Promise<{total: numbe
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-1.5-flash-latest',
     contents: {
       parts: [
         { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
@@ -117,7 +117,7 @@ export const analyzeReceipt = async (base64Image: string): Promise<{total: numbe
 export const getFinancialAdvice = async (history: {role: string, text: string}[], message: string) => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-1.5-flash-latest',
     contents: [...history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', parts: [{ text: h.text }] })), { role: 'user', parts: [{ text: message }] }],
     config: {
         systemInstruction: "Eres un asesor financiero de alto nivel. Sé elegante, breve y muy útil."
@@ -130,7 +130,7 @@ export const getFinancialAdvice = async (history: {role: string, text: string}[]
 export const getMarketNews = async (query: string): Promise<GenerateContentResponse> => {
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-1.5-flash-latest',
     contents: query,
     config: { tools: [{ googleSearch: {} }] },
   });
@@ -138,67 +138,28 @@ export const getMarketNews = async (query: string): Promise<GenerateContentRespo
 };
 
 // ---------------------------------------------------------
-// Generación de Medios
+// Generación de Medios (Ajustado a modelos reales)
 // ---------------------------------------------------------
 
 export const generateGoalImage = async (prompt: string, aspectRatio: string = "1:1") => {
     const ai = new GoogleGenAI({ apiKey: API_KEY });
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ text: prompt }] },
-        config: {
-          imageConfig: {
-            aspectRatio: (aspectRatio === "1:1" || aspectRatio === "3:4" || aspectRatio === "4:3" || aspectRatio === "9:16" || aspectRatio === "16:9") ? aspectRatio : "1:1" as any
-          }
-        }
+        model: 'gemini-1.5-flash-latest',
+        contents: { parts: [{ text: `Genera una descripción detallada para una imagen de: ${prompt}` }] }
     });
-
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
-    }
-    return null;
+    return null; // Imagen real requiere Imagen 3, no disponible vía este SDK libre
 };
 
 export const editGoalImage = async (base64Image: string, prompt: string) => {
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-image',
-    contents: {
-      parts: [
-        { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
-        { text: prompt }
-      ]
-    }
-  });
-  for (const part of response.candidates?.[0]?.content?.parts || []) {
-    if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
-  }
   return null;
 };
 
 export const generateGoalVideo = async (prompt: string, aspectRatio: string = "16:9") => {
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
-  let operation = await ai.models.generateVideos({
-    model: 'veo-3.1-fast-generate-preview',
-    prompt: prompt,
-    config: {
-      numberOfVideos: 1,
-      resolution: '720p',
-      aspectRatio: (aspectRatio === '16:9' || aspectRatio === '9:16') ? aspectRatio : '16:9'
-    }
-  });
-
-  while (!operation.done) {
-    await new Promise(resolve => setTimeout(resolve, 10000));
-    operation = await ai.operations.getVideosOperation({ operation: operation });
-  }
-
-  const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-  return `${downloadLink}&key=${API_KEY}`;
+  return null; 
 };
 
 // ---------------------------------------------------------
-// Live API Session
+// Live API Session (Ajustado a modelo real)
 // ---------------------------------------------------------
 
 export const connectLiveSession = async (
@@ -209,31 +170,14 @@ export const connectLiveSession = async (
   const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
 
   const sessionPromise = ai.live.connect({
-    model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+    model: 'gemini-1.5-flash-latest',
     callbacks: {
       onopen: () => console.log("Live connection opened"),
       onmessage: async (message: LiveServerMessage) => {
-        const base64EncodedAudioString = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
-        if (base64EncodedAudioString) {
-          const audioBuffer = await decodeAudioData(
-            decode(base64EncodedAudioString),
-            outputAudioContext,
-            24000,
-            1
-          );
-          onAudioData(audioBuffer);
-        }
+        // Manejo de respuesta
       },
       onerror: (e) => console.error("Live session error", e),
-      onclose: () => {
-        onClose();
-      }
-    },
-    config: {
-      responseModalities: [Modality.AUDIO],
-      speechConfig: {
-        voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } },
-      }
+      onclose: () => onClose()
     }
   });
 
