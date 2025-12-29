@@ -67,11 +67,29 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-midnight relative">
+    // CAMBIO: Añadido min-h-screen y asegurado que el fondo sea midnight total
+    <div className="flex min-h-screen h-screen overflow-hidden bg-midnight relative">
       <div className={`absolute inset-0 bg-gradient-to-tr ${currentTheme.gradient} opacity-70 pointer-events-none`} />
-      <Sidebar currentView={currentView} setView={setView} isOpen={isSidebarOpen} toggle={() => setSidebarOpen(!isSidebarOpen)} currentTheme={currentTheme} setTheme={setCurrentTheme} themes={THEMES} />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden md:ml-64 relative z-10">
-        <MobileHeader currentView={currentView} currentTheme={currentTheme} onMenuClick={() => setSidebarOpen(true)} onSettingsClick={() => setView(View.SETTINGS)} />
+      
+      <Sidebar 
+        currentView={currentView} 
+        setView={setView} 
+        isOpen={isSidebarOpen} 
+        toggle={() => setSidebarOpen(!isSidebarOpen)} 
+        currentTheme={currentTheme} 
+        setTheme={setCurrentTheme} 
+        themes={THEMES} 
+      />
+      
+      {/* CAMBIO: Asegurado flex-1 y h-full para el contenedor de contenido */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden md:ml-64 relative z-10">
+        <MobileHeader 
+          currentView={currentView} 
+          currentTheme={currentTheme} 
+          onMenuClick={() => setSidebarOpen(true)} 
+          onSettingsClick={() => setView(View.SETTINGS)} 
+        />
+        
         <main className="flex-1 overflow-y-auto p-4 md:p-12 pb-28 text-white">
           <div className="max-w-6xl mx-auto">
             {currentView === View.DASHBOARD && <Dashboard transactions={transactions} onExport={() => {}} onSync={handleSyncAll} isSyncing={isSyncing} theme={currentTheme} />}
@@ -82,6 +100,7 @@ const App: React.FC = () => {
             {currentView === View.SETTINGS && <Settings theme={currentTheme} onSync={handleSyncAll} isSyncing={isSyncing} onClearData={() => setTransactions([])} themes={THEMES} setTheme={setCurrentTheme} />}
           </div>
         </main>
+
         <nav className="md:hidden fixed bottom-0 left-3 right-3 bg-navy/95 backdrop-blur-xl border border-white/10 px-4 py-1.5 flex justify-between items-center z-50 rounded-t-2xl shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
           <button onClick={() => setView(View.DASHBOARD)} className={`flex flex-col items-center transition-all ${currentView === View.DASHBOARD ? 'text-gold-500 scale-110' : 'text-gray-500'}`}>
             <LayoutDashboard size={22} /><span className="text-[9px] font-bold uppercase mt-1">Panel</span>
