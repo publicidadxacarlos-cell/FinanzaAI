@@ -25,7 +25,6 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
   const formatCurrency = (val: number) => 
     new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
 
-  // Auto-reset del botón de borrar tras 3 segundos
   useEffect(() => {
     if (deleteConfirmId) {
       const timer = setTimeout(() => setDeleteConfirmId(null), 3000);
@@ -33,7 +32,6 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
     }
   }, [deleteConfirmId]);
 
-  // Cerrar edición si pulsas fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (editingId && formRef.current && !formRef.current.contains(event.target as Node)) {
@@ -68,20 +66,21 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
     e.preventDefault();
     if (!description || !amount) return;
     setLoading(true);
+    
     try {
-      // --- MEJORA IA: Categorización real ---
       let finalCategory = category;
       
-      if (!finalCategory) {
+      if (!finalCategory || finalCategory === '') {
+        console.log("Solicitando categorización para:", description);
         const aiResponse = await categorizeTransaction(description);
-        finalCategory = aiResponse && aiResponse !== "" ? aiResponse : "Varios";
+        finalCategory = aiResponse || "Varios";
       }
 
       const numericAmount = parseFloat(amount);
       const transactionData: Transaction = {
         id: editingId || crypto.randomUUID(),
         date: new Date().toLocaleDateString('es-ES'),
-        description,
+        description: description.trim(),
         amount: Math.abs(numericAmount),
         type: numericAmount < 0 ? TransactionType.EXPENSE : TransactionType.INCOME,
         category: finalCategory
@@ -92,10 +91,12 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
           setEditingId(null);
       } else {
           addTransaction(transactionData);
-          setTimeout(() => onSync(), 500);
+          setTimeout(() => onSync(), 800);
       }
       
-      setDescription(''); setAmount(''); setCategory('');
+      setDescription(''); 
+      setAmount(''); 
+      setCategory('');
     } catch (error) { 
       console.error("Error en el registro:", error); 
     } finally { 
@@ -145,7 +146,6 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
         </form>
       </div>
 
-      {/* Tabla de Resultados */}
       <div className="bg-black/30 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[600px]">
