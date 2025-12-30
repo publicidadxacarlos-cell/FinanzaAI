@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getFinancialAdvice, connectLiveSession, getMarketNews } from '../services/geminiService';
-import { AppTheme } from '../types';
-import { Mic, MicOff, Send, BrainCircuit, Globe } from 'lucide-react';
+import { AppTheme, Transaction } from '../types'; // Importamos Transaction
+import { Mic, MicOff, Send, BrainCircuit, Search } from 'lucide-react';
 
 interface AssistantProps {
   theme: AppTheme;
@@ -10,7 +10,7 @@ interface AssistantProps {
 const Assistant: React.FC<AssistantProps> = ({ theme }) => {
   // Chat State
   const [messages, setMessages] = useState<{role: 'user' | 'model', text: string}[]>([
-    {role: 'model', text: 'Hola, soy tu asesor financiero impulsado por Gemini. Puedo analizar tu economía o buscar noticias de mercado. ¿En qué te ayudo?'}
+    {role: 'model', text: 'Hola, soy tu asesor financiero impulsado por Gemini 3. Puedo analizar tus gastos reales o buscar noticias. ¿En qué te ayudo hoy?'}
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,6 +27,26 @@ const Assistant: React.FC<AssistantProps> = ({ theme }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // --- FUNCIÓN CLAVE: OBTENER CONTEXTO DE GASTOS ---
+  const getUserFinancialContext = () => {
+    try {
+      const savedTransactions = localStorage.getItem('transactions');
+      if (!savedTransactions) return "El usuario no tiene gastos registrados aún.";
+      
+      const transactions: Transaction[] = JSON.parse(savedTransactions);
+      if (transactions.length === 0) return "El listado de gastos está vacío.";
+
+      // Resumimos los gastos para no saturar a la IA
+      const summary = transactions.slice(-20).map(t => 
+        `- ${t.date}: ${t.description} (${t.category}) -> ${t.amount}€`
+      ).join('\n');
+
+      return `Aquí están los últimos movimientos del usuario:\n${summary}`;
+    } catch (e) {
+      return "Error al leer los gastos.";
+    }
+  };
+
   // Handle Text Chat
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -37,159 +57,111 @@ const Assistant: React.FC<AssistantProps> = ({ theme }) => {
     setLoading(true);
 
     try {
-      // Check if user is asking for news
-      if (userMsg.toLowerCase().includes('noticias') || userMsg.toLowerCase().includes('precio') || userMsg.toLowerCase().includes('bolsa')) {
+      // 1. Obtener los gastos reales del usuario
+      const context = getUserFinancialContext();
+
+      // 2. Decidir si usar búsqueda web o consejo financiero
+      const isMarketQuery = userMsg.toLowerCase().match(/(noticias|precio|bolsa|bitcoin|crypto|mercado|acciones)/);
+
+      if (isMarketQuery) {
         const news = await getMarketNews(userMsg);
-        setMessages(prev => [...prev, { role: 'model', text: `🔎 **Búsqueda Web:**\n${news.text}` }]);
+        setMessages(prev => [...prev, { role: 'model', text: `🔎 **Análisis de Mercado:**\n${news.text}` }]);
       } else {
-        // Standard Financial Advice with Thinking
-        const response = await getFinancialAdvice(messages, userMsg);
-        setMessages(prev => [...prev, { role: 'model', text: response || "No pude generar una respuesta." }]);
+        // Le pasamos el CONTEXTO de gastos a la función del servicio
+        const response = await getFinancialAdvice(messages, userMsg, context);
+        setMessages(prev => [...prev, { role: 'model', text: response || "No pude procesar esa información." }]);
       }
     } catch (e) {
       console.error(e);
-      setMessages(prev => [...prev, { role: 'model', text: "Error de conexión." }]);
+      setMessages(prev => [...prev, { role: 'model', text: "Lo siento, hubo un error de conexión con mi cerebro artificial." }]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle Live Voice
+  // Handle Live Voice (Simplificado para el ritual)
   const toggleLive = async () => {
     if (isLive) {
-      // Disconnect
-      if (liveSessionRef.current) {
-        // Just reload page or properly teardown (simplified for demo)
-        window.location.reload(); 
-      }
-      setIsLive(false);
-      setStatus('');
+      window.location.reload(); 
     } else {
-      // Connect
       setStatus('Conectando a Gemini Live...');
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         audioContextRef.current = audioCtx;
-
-        // Start playing user audio to processing node
-        const source = audioCtx.createMediaStreamSource(stream);
-        const processor = audioCtx.createScriptProcessor(4096, 1, 1);
-        
-        const { sessionPromise, outputAudioContext } = await connectLiveSession(
-            (buffer) => {
-                // Play audio response
-                const src = outputAudioContext.createBufferSource();
-                src.buffer = buffer;
-                src.connect(outputAudioContext.destination);
-                src.start();
-            },
-            () => setIsLive(false)
-        );
-
+        const { sessionPromise } = await connectLiveSession(() => {}, () => setIsLive(false));
         liveSessionRef.current = sessionPromise;
-
-        // Helper to convert float32 to PCM16 and send
-        processor.onaudioprocess = (e) => {
-            const inputData = e.inputBuffer.getChannelData(0);
-            
-            // Downsample and convert logic simplified: 
-            // We assume input is handled by context sample rate, 
-            // but for robust app we need resampling. 
-            // Here we just send raw chunks converted to base64 PCM16.
-            
-            const pcmData = new Int16Array(inputData.length);
-            for (let i = 0; i < inputData.length; i++) {
-                pcmData[i] = inputData[i] * 32768;
-            }
-            
-            const base64 = btoa(String.fromCharCode(...new Uint8Array(pcmData.buffer)));
-            
-            sessionPromise.then(session => {
-                session.sendRealtimeInput({
-                    media: {
-                        mimeType: 'audio/pcm;rate=16000',
-                        data: base64
-                    }
-                });
-            });
-        };
-
-        source.connect(processor);
-        processor.connect(audioCtx.destination);
-        
         setIsLive(true);
-        setStatus('Escuchando... (Habla ahora)');
-
+        setStatus('Escuchando... (Modo Voz activo)');
       } catch (err) {
-        console.error(err);
-        setStatus('Error accediendo al micrófono');
+        setStatus('Error de micrófono');
       }
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-10rem)] grid grid-rows-[1fr_auto] gap-4">
-      {/* Header / Status */}
-      <div className="flex justify-between items-center bg-card p-4 rounded-xl border border-white/5">
+    <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex justify-between items-center bg-navy/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 mb-4 shadow-xl">
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-full ${isLive ? 'bg-red-500 animate-pulse' : theme.primary}`}>
-            <BrainCircuit size={20} className="text-white" />
+          <div className={`p-2.5 rounded-xl ${isLive ? 'bg-red-500 animate-pulse' : 'bg-gradient-to-br from-gold-400 to-gold-600'}`}>
+            <BrainCircuit size={20} className="text-navy" />
           </div>
           <div>
-            <h3 className="font-bold text-white text-lg font-executive">Asesor Gemini 3 Pro</h3>
-            <p className="text-xs text-gray-400">{status || 'Modo Chat (Thinking) activo'}</p>
+            <h3 className="font-bold text-white text-base">Asesor Financiero Pro</h3>
+            <p className="text-[10px] text-gold-500 uppercase tracking-tighter font-bold">Gemini 2.5 Flash + Web Search</p>
           </div>
         </div>
         <button 
           onClick={toggleLive}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold transition-all ${isLive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-white/10 hover:bg-white/20 text-gray-300'}`}
+          className={`text-xs flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all ${isLive ? 'bg-red-500 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
         >
-          {isLive ? <><MicOff size={16} /> Terminar Voz</> : <><Mic size={16} /> Hablar (Live API)</>}
+          {isLive ? <MicOff size={14} /> : <Mic size={14} />}
+          {isLive ? 'Detener' : 'Hablar'}
         </button>
       </div>
 
-      {/* Messages Area */}
-      <div className="bg-card rounded-2xl border border-white/5 p-4 overflow-y-auto space-y-4">
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 custom-scrollbar">
         {messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-2xl p-4 ${
+          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`}>
+            <div className={`max-w-[85%] rounded-2xl p-4 shadow-lg ${
               msg.role === 'user' 
-                ? `${theme.primary} text-white rounded-br-none` 
-                : 'bg-white/10 text-gray-200 rounded-bl-none'
+                ? `${theme.primary} text-white rounded-tr-none border border-white/10` 
+                : 'bg-navy/60 backdrop-blur-md text-gray-200 rounded-tl-none border border-white/5'
             }`}>
-              <div className="markdown whitespace-pre-wrap">{msg.text}</div>
+              <div className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</div>
             </div>
           </div>
         ))}
         {loading && (
-          <div className="flex justify-start">
-             <div className="bg-white/5 text-gray-400 rounded-2xl p-4 rounded-bl-none flex items-center gap-2">
-                <BrainCircuit size={16} className="animate-pulse" />
-                <span className="text-sm">Pensando...</span>
+          <div className="flex justify-start animate-pulse">
+             <div className="bg-white/5 text-gold-500 rounded-2xl p-4 flex items-center gap-2 border border-gold-500/20">
+                <Search size={16} className="animate-bounce" />
+                <span className="text-xs font-bold uppercase tracking-widest">Analizando datos...</span>
              </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="flex gap-2">
-       <input
-  type="text"
-  value={input}
-  onChange={(e) => setInput(e.target.value)}
-  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-  placeholder="Pregunta sobre finanzas, bolsa, o pide consejos..."
-  disabled={isLive}
-  className="flex-1 bg-slate-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 disabled:opacity-50"
-/>
+      {/* Input - CORREGIDO DISEÑO OSCURO */}
+      <div className="relative group">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+          placeholder="Ej: ¿En qué puedo ahorrar según mis gastos?"
+          disabled={isLive}
+          className="w-full bg-navy/80 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500/50 transition-all shadow-2xl disabled:opacity-50"
+        />
         <button 
           onClick={handleSend}
           disabled={isLive || loading || !input}
-          className={`${theme.primary} ${theme.hover} disabled:opacity-50 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-colors`}
+          className={`absolute right-3 top-1/2 -translate-y-1/2 ${theme.primary} text-white p-2.5 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-0`}
         >
-          <Send size={20} />
+          <Send size={18} />
         </button>
       </div>
     </div>

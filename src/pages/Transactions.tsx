@@ -69,7 +69,14 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
     if (!description || !amount) return;
     setLoading(true);
     try {
-      let finalCategory = category || await categorizeTransaction(description);
+      // --- MEJORA IA: Categorización real ---
+      let finalCategory = category;
+      
+      if (!finalCategory) {
+        const aiResponse = await categorizeTransaction(description);
+        finalCategory = aiResponse && aiResponse !== "" ? aiResponse : "Varios";
+      }
+
       const numericAmount = parseFloat(amount);
       const transactionData: Transaction = {
         id: editingId || crypto.randomUUID(),
@@ -79,15 +86,21 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
         type: numericAmount < 0 ? TransactionType.EXPENSE : TransactionType.INCOME,
         category: finalCategory
       };
+
       if (editingId && updateTransaction) {
           updateTransaction(transactionData);
           setEditingId(null);
       } else {
           addTransaction(transactionData);
-          onSync();
+          setTimeout(() => onSync(), 500);
       }
+      
       setDescription(''); setAmount(''); setCategory('');
-    } catch (error) { console.error(error); } finally { setLoading(false); }
+    } catch (error) { 
+      console.error("Error en el registro:", error); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   return (
@@ -107,18 +120,32 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div className="md:col-span-2 space-y-2">
             <label className="text-[10px] text-gold-300/60 uppercase font-black px-2 tracking-widest">Concepto</label>
-            <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-gold-500/50" />
+            <input 
+              type="text" 
+              value={description} 
+              onChange={(e) => setDescription(e.target.value)} 
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-gold-500/50 transition-colors" 
+              placeholder="Ej: Compra Mercadona"
+            />
           </div>
           <div className="space-y-2">
             <label className="text-[10px] text-gold-300/60 uppercase font-black px-2 tracking-widest">Importe</label>
-            <input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-serif outline-none focus:border-gold-500/50" />
+            <input 
+              type="number" 
+              step="0.01" 
+              value={amount} 
+              onChange={(e) => setAmount(e.target.value)} 
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-serif outline-none focus:border-gold-500/50" 
+              placeholder="0.00"
+            />
           </div>
-          <button type="submit" disabled={loading} className="h-[50px] rounded-xl flex items-center justify-center gap-2 font-black uppercase text-[10px] bg-gold-600 text-white shadow-lg">
+          <button type="submit" disabled={loading} className="h-[50px] rounded-xl flex items-center justify-center gap-2 font-black uppercase text-[10px] bg-gold-600 text-white shadow-lg hover:bg-gold-500 transition-all active:scale-95 disabled:opacity-50">
             {loading ? <Loader2 className="animate-spin" /> : editingId ? 'Guardar Cambios' : 'Registrar'}
           </button>
         </form>
       </div>
 
+      {/* Tabla de Resultados */}
       <div className="bg-black/30 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[600px]">
@@ -135,8 +162,14 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
                 <tr key={t.id} className={`transition-colors ${editingId === t.id ? 'bg-gold-500/5' : 'hover:bg-white/[0.02]'}`}>
                   <td className="p-6 text-gray-500 font-serif text-xs">{t.date}</td>
                   <td className="p-6">
-                    <p className="text-white font-bold text-sm">{t.description}</p>
-                    <p className="text-[9px] text-gold-500/50 uppercase tracking-tighter">{t.category}</p>
+                    <div className="flex flex-col gap-1.5">
+                      <p className="text-white font-bold text-sm leading-tight">{t.description}</p>
+                      <div className="flex">
+                        <span className="px-2.5 py-0.5 rounded-full bg-gold-500/15 border border-gold-500/30 text-gold-400 text-[11px] font-black uppercase tracking-wider shadow-sm">
+                          {t.category || 'Varios'}
+                        </span>
+                      </div>
+                    </div>
                   </td>
                   <td className={`p-6 text-right font-serif font-bold text-lg ${t.type === TransactionType.INCOME ? 'text-emerald-400' : 'text-rose-400'}`}>
                     {t.type === TransactionType.INCOME ? '+' : '-'}{formatCurrency(t.amount)}

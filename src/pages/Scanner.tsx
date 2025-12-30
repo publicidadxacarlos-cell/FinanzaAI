@@ -28,14 +28,15 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete, theme }) => {
     if (!image) return;
     setLoading(true);
     try {
-      // Separar el prefijo base64
+      // Separar el prefijo base64 para enviarlo a Gemini
       const base64Data = image.split(',')[1];
       const data = await analyzeReceipt(base64Data);
       
       const newTransaction: Transaction = {
         id: crypto.randomUUID(),
+        // Si Gemini no detecta fecha, usamos la actual
         date: data.date || new Date().toISOString().split('T')[0],
-        amount: data.total,
+        amount: data.total || 0,
         description: data.merchant || 'Recibo escaneado',
         category: data.category || 'Compras',
         type: TransactionType.EXPENSE
@@ -43,10 +44,10 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete, theme }) => {
       
       onScanComplete(newTransaction);
       setImage(null);
-      alert("¡Recibo procesado con éxito!");
+      // He quitado el alert molesto y podrías poner un toast más adelante
     } catch (e) {
       console.error(e);
-      alert("Error al analizar el recibo con Gemini.");
+      alert("Error al analizar el recibo con Gemini. Intenta que la foto tenga buena luz.");
     } finally {
       setLoading(false);
     }
@@ -66,26 +67,38 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete, theme }) => {
             <div className={`w-20 h-20 rounded-full ${theme.primary} mx-auto flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
               <Camera className="text-white" size={32} />
             </div>
-            <p className="text-white font-medium">Pulsa para subir o tomar foto</p>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+            <p className="text-white font-medium">Pulsa para tomar foto del ticket</p>
+            
+            {/* CAMBIO CLAVE: 
+                - capture="environment" fuerza a abrir la cámara trasera en móviles.
+                - Si se usa en PC, abrirá el explorador de archivos normal.
+            */}
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              accept="image/*" 
+              capture="environment" 
+              className="hidden" 
+            />
           </div>
         ) : (
-          <div className="relative max-w-sm mx-auto rounded-[2rem] overflow-hidden border border-white/20 shadow-2xl">
+          <div className="relative max-w-sm mx-auto rounded-[2rem] overflow-hidden border border-white/20 shadow-2xl animate-in zoom-in duration-300">
             <img src={image} alt="Ticket" className="w-full h-auto" />
             <button 
               onClick={() => setImage(null)}
-              className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-white hover:bg-black"
+              className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-white hover:bg-black transition-colors"
             >
               <X size={20} />
             </button>
-            <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+            <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/90 to-transparent">
               <button 
                 onClick={processImage}
                 disabled={loading}
-                className={`w-full ${theme.primary} text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2`}
+                className={`w-full ${theme.primary} text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-xl hover:opacity-90 active:scale-95 transition-all`}
               >
                 {loading ? <Loader2 className="animate-spin" /> : <Check size={20} />}
-                {loading ? 'Analizando...' : 'Confirmar Ticket'}
+                {loading ? 'Analizando con IA...' : 'Confirmar y Guardar'}
               </button>
             </div>
           </div>
