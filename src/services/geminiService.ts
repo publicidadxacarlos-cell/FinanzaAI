@@ -1,9 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 
-// 1. CONFIGURACIÓN DE CLAVES
-const API_KEY = "AIzaSyCiS0s-KIsDOe1tJ8wWATSoRbOojFJ800I";
-// Asegúrate de tener tu clave de OpenAI en el archivo .env o pegarla aquí si prefieres probar
-const OPENAI_API_KEY = (import.meta as any).env?.VITE_OPENAI_API_KEY || "TU_CLAVE_OPENAI_AQUI";
+// 1. CONFIGURACIÓN DE CLAVES (LEER DE .ENV PARA SEGURIDAD)
+const API_KEY = (import.meta as any).env?.VITE_GEMINI_API_KEY || "";
+const OPENAI_API_KEY = (import.meta as any).env?.VITE_OPENAI_API_KEY || "";
 
 // --- HELPERS DE AUDIO Y CONVERSIÓN (Completos) ---
 export function encode(bytes: Uint8Array) {
@@ -37,7 +36,7 @@ export function createPcmBlob(data: Float32Array): any {
 
 export const base64ToUint8Array = decode;
 
-// --- CATEGORIZACIÓN CON OPENAI (Solución al problema de Google) ---
+// --- CATEGORIZACIÓN CON OPENAI (Lista ampliada) ---
 export const categorizeTransaction = async (description: string): Promise<string> => {
   if (!description) return "Varios";
   try {
@@ -51,17 +50,18 @@ export const categorizeTransaction = async (description: string): Promise<string
         model: "gpt-3.5-turbo",
         messages: [{
           role: "user",
-          content: `Clasifica este gasto: "${description}". Responde solo una palabra de estas: Comida, Ocio, Transporte, Ingresos, Vivienda, Salud o Varios.`
+          content: `Clasifica este gasto: "${description}". Responde solo una palabra de estas: Comida, Ocio, Transporte, Ingresos, Vivienda, Salud, Suscripciones, Compras, Viajes, Mascotas o Varios.`
         }],
         temperature: 0
       })
     });
 
     const data = await response.json();
-    const text = data.choices[0].message.content.trim();
+    const text = data.choices[0].message.content.trim().replace('.', '');
     
     console.log("OpenAI clasificó:", text);
-    const categorias = ['Comida', 'Ocio', 'Transporte', 'Ingresos', 'Vivienda', 'Salud'];
+    // Esta lista debe coincidir con la del prompt de arriba
+    const categorias = ['Comida', 'Ocio', 'Transporte', 'Ingresos', 'Vivienda', 'Salud', 'Suscripciones', 'Compras', 'Viajes', 'Mascotas'];
     const encontrada = categorias.find(cat => text.toLowerCase().includes(cat.toLowerCase()));
     return encontrada || "Varios";
   } catch (error) {
@@ -82,7 +82,7 @@ export const getFinancialAdvice = async (history: {role: string, text: string}[]
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "Eres un asesor financiero experto. Contexto actual: " + (context || "Sin contexto adicional") },
+          { role: "system", content: "Eres un asesor financiero experto. Da consejos breves y útiles. Contexto: " + (context || "") },
           ...history.map(h => ({ role: h.role === 'user' ? 'user' : 'assistant', content: h.text })),
           { role: "user", content: message }
         ]
@@ -91,30 +91,35 @@ export const getFinancialAdvice = async (history: {role: string, text: string}[]
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error) {
-    return "Error de conexión con el asesor de OpenAI.";
+    return "Error de conexión con el asesor.";
   }
 };
 
-// --- GENERACIÓN DE IMÁGENES (VisionBoard) ---
+// --- GENERACIÓN DE IMÁGENES REALISTAS (VisionBoard) ---
 export const generateGoalImage = async (prompt: string, aspectRatio: string = "1:1") => {
   if (!OPENAI_API_KEY) return null;
   try {
     const res = await fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${OPENAI_API_KEY}` },
-      body: JSON.stringify({ model: "dall-e-3", prompt: `Goal: ${prompt}`, n: 1, size: "1024x1024" })
+      body: JSON.stringify({ 
+        model: "dall-e-3", 
+        // Prompt optimizado para realismo
+        prompt: `A professional, high-quality photorealistic 4k photography of ${prompt}. Cinematic lighting, realistic textures, real-life style, no cartoons, no text.`, 
+        n: 1, 
+        size: "1024x1024" 
+      })
     });
     const data = await res.json();
     return data.data?.[0]?.url || null;
   } catch { return null; }
 };
 
-// --- FUNCIONES DE SOPORTE PARA MANTENER COMPATIBILIDAD ---
+// --- SOPORTE Y COMPATIBILIDAD ---
 export const analyzeReceipt = async (base64Image: string) => ({ total: 0, date: "", merchant: "", category: "Varios" });
 export const connectLiveSession = async (onAudioData: any, onClose: any) => {
-    console.warn("Live Session requiere Gemini. OpenAI no soporta este modo nativo aún.");
-    return { sessionPromise: Promise.resolve(), outputAudioContext: new AudioContext() };
+  return { sessionPromise: Promise.resolve(), outputAudioContext: new AudioContext() };
 };
-export const getMarketNews = async (query: string) => ({ response: { text: () => "Noticias no disponibles momentáneamente" } } as any);
+export const getMarketNews = async (query: string) => ({ response: { text: () => "Noticias no disponibles" } } as any);
 export const editGoalImage = async (img: string, p: string) => null;
 export const generateGoalVideo = async (p: string, ar: string = "16:9") => null;
