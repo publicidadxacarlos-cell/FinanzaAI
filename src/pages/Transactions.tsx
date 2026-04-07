@@ -42,22 +42,18 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [editingId]);
 
-  useEffect(() => {
-    if (!amount || editingId) return;
-    const val = parseFloat(amount);
-    if (!isNaN(val)) setType(val < 0 ? TransactionType.EXPENSE : TransactionType.INCOME);
-  }, [amount, editingId]);
+
 
   const handleEditClick = (t: Transaction) => {
     if (editingId === t.id) {
-        setEditingId(null); setDescription(''); setAmount(''); setCategory('');
+        setEditingId(null); setDescription(''); setAmount(''); setCategory(''); setType(TransactionType.EXPENSE);
         return;
     }
     setDeleteConfirmId(null);
     setEditingId(t.id);
     setDescription(t.description);
-    const displayAmount = t.type === TransactionType.EXPENSE ? -Math.abs(t.amount) : t.amount;
-    setAmount(displayAmount.toString());
+    setAmount(Math.abs(t.amount).toString());
+    setType(t.type);
     setCategory(t.category);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -82,7 +78,7 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
         date: new Date().toLocaleDateString('es-ES'),
         description: description.trim(),
         amount: Math.abs(numericAmount),
-        type: numericAmount < 0 ? TransactionType.EXPENSE : TransactionType.INCOME,
+        type: type,
         category: finalCategory
       };
 
@@ -97,6 +93,7 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
       setDescription(''); 
       setAmount(''); 
       setCategory('');
+      setType(TransactionType.EXPENSE);
     } catch (error) { 
       console.error("Error en el registro:", error); 
     } finally { 
@@ -118,7 +115,7 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
       </div>
 
       <div ref={formRef} className={`p-6 rounded-3xl border transition-all duration-500 ${editingId ? 'bg-gold-500/10 border-gold-500 shadow-[0_0_30px_rgba(212,175,55,0.2)]' : 'bg-white/5 border-gold-500/30'}`}>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
           <div className="md:col-span-2 space-y-2">
             <label className="text-[10px] text-gold-300/60 uppercase font-black px-2 tracking-widest">Concepto</label>
             <input 
@@ -133,12 +130,43 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
             <label className="text-[10px] text-gold-300/60 uppercase font-black px-2 tracking-widest">Importe</label>
             <input 
               type="number" 
-              step="0.01" 
+              step="0.01"
+              min="0"
               value={amount} 
               onChange={(e) => setAmount(e.target.value)} 
               className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-serif outline-none focus:border-gold-500/50" 
               placeholder="0.00"
             />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] text-gold-300/60 uppercase font-black px-2 tracking-widest">Tipo</label>
+            <div className="flex rounded-xl overflow-hidden border border-white/10 h-[50px]">
+              <button
+                type="button"
+                onClick={() => setType(TransactionType.EXPENSE)}
+                className={`flex-1 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase transition-all ${
+                  type === TransactionType.EXPENSE
+                    ? 'bg-rose-500/20 text-rose-400'
+                    : 'bg-black/20 text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${type === TransactionType.EXPENSE ? 'bg-rose-500' : 'bg-gray-600'}`} />
+                Gasto
+              </button>
+              <div className="w-px bg-white/10" />
+              <button
+                type="button"
+                onClick={() => setType(TransactionType.INCOME)}
+                className={`flex-1 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase transition-all ${
+                  type === TransactionType.INCOME
+                    ? 'bg-emerald-500/20 text-emerald-400'
+                    : 'bg-black/20 text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${type === TransactionType.INCOME ? 'bg-emerald-500' : 'bg-gray-600'}`} />
+                Ingreso
+              </button>
+            </div>
           </div>
           <button type="submit" disabled={loading} className="h-[50px] rounded-xl flex items-center justify-center gap-2 font-black uppercase text-[10px] bg-gold-600 text-white shadow-lg hover:bg-gold-500 transition-all active:scale-95 disabled:opacity-50">
             {loading ? <Loader2 className="animate-spin" /> : editingId ? 'Guardar Cambios' : 'Registrar'}
