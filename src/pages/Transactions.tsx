@@ -41,7 +41,12 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [editingId]);
-
+  // Sincroniza el toggle con el signo del importe que se escribe
+  useEffect(() => {
+    if (!amount) return;
+    const val = parseFloat(amount);
+    if (!isNaN(val)) setType(val < 0 ? TransactionType.EXPENSE : TransactionType.INCOME);
+  }, [amount]);
 
 
   const handleEditClick = (t: Transaction) => {
