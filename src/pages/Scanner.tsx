@@ -15,14 +15,29 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete, theme }) => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result as string);
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const img = new Image();
+      img.onload = () => {
+        // Comprimir a máx 1024px — suficiente para leer texto de un ticket
+        const MAX_SIZE = 1024;
+        const scale = Math.min(1, MAX_SIZE / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        // JPEG 0.80 → ~150-300KB, más que suficiente para Gemini
+        const compressed = canvas.toDataURL('image/jpeg', 0.80);
+        setImage(compressed);
       };
-      reader.readAsDataURL(file);
-    }
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   };
+
 
   const processImage = async () => {
     if (!image) return;
