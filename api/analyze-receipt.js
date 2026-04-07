@@ -29,7 +29,7 @@ Categoriza el gasto en una de estas: Comida, Ocio, Transporte, Vivienda, Salud, 
 Formato exacto: {"total": 15.50, "date": "DD/MM/AAAA", "merchant": "Nombre del comercio", "category": "Comida"}`;
 
     const result = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash-preview-04-17',
       contents: [{
         parts: [
           { text: prompt },
