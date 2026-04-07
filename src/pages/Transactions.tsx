@@ -20,6 +20,7 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [formError, setFormError] = useState('');
   const formRef = useRef<HTMLDivElement>(null);
 
   const formatCurrency = (val: number) => 
@@ -65,7 +66,9 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description || !amount) return;
+    if (!description.trim()) { setFormError('El concepto es obligatorio'); return; }
+    if (!amount) { setFormError('Introduce un importe válido'); return; }
+    setFormError('');
     setLoading(true);
     
     try {
@@ -95,10 +98,11 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
           setTimeout(() => onSync(), 800);
       }
       
-      setDescription(''); 
-      setAmount(''); 
+      setDescription('');
+      setAmount('');
       setCategory('');
       setType(TransactionType.EXPENSE);
+      setFormError('');
     } catch (error) { 
       console.error("Error en el registro:", error); 
     } finally { 
@@ -126,7 +130,7 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
             <input 
               type="text" 
               value={description} 
-              onChange={(e) => setDescription(e.target.value)} 
+              onChange={(e) => { setDescription(e.target.value); if (formError) setFormError(''); }}
               className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-gold-500/50 transition-colors" 
               placeholder="Ej: Compra Mercadona"
             />
@@ -136,7 +140,6 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
             <input 
               type="number" 
               step="0.01"
-              min="0"
               value={amount} 
               onChange={(e) => setAmount(e.target.value)} 
               className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-serif outline-none focus:border-gold-500/50" 
@@ -177,6 +180,11 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, addTransactio
             {loading ? <Loader2 className="animate-spin" /> : editingId ? 'Guardar Cambios' : 'Registrar'}
           </button>
         </form>
+        {formError && (
+          <p className="mt-3 text-rose-400 text-[11px] font-bold text-center animate-fade-in flex items-center justify-center gap-1.5">
+            ⚠️ {formError}
+          </p>
+        )}
       </div>
 
       <div className="bg-black/30 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden">
