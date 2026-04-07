@@ -118,43 +118,31 @@ export const generateGoalImage = async (prompt: string, aspectRatio: string = "1
 // --- SOPORTE Y COMPATIBILIDAD ---
 export const analyzeReceipt = async (base64Image: string) => {
   try {
-    const ai = new GoogleGenAI({ apiKey: API_KEY });
-
-    // Extraer mimeType dinámicamente del prefijo base64 (jpeg, png, webp, etc.)
-    const mimeType = base64Image.split(';')[0].split(':')[1] || "image/jpeg";
+    // Extraer mimeType del prefijo base64
+    const mimeType = base64Image.split(';')[0].split(':')[1] || 'image/jpeg';
     const base64Data = base64Image.split(',')[1] || base64Image;
 
-    const prompt = `Analiza la imagen de este comprobante o ticket y extrae los datos.
-Responde EXCLUSIVAMENTE en formato JSON plano, sin bloques de código Markdown (sin \`\`\`json).
-Usa punto para decimales en el total.
-Formato exacto: {"total": 15.50, "date": "DD/MM/AAAA", "merchant": "Nombre del comercio"}`;
-
-    const result = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: [{
-        parts: [
-          { text: prompt },
-          { inlineData: { data: base64Data, mimeType } }
-        ]
-      }]
+    // Llamada al serverless — la API key nunca sale del servidor
+    const response = await fetch('/api/analyze-receipt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base64Image: base64Data, mimeType })
     });
 
-    const text = result.text;
-    const jsonMatch = text.match(/\{.*\}/s);
-    if (jsonMatch) {
-      const data = JSON.parse(jsonMatch[0]);
-      const category = await categorizeTransaction(data.merchant);
-      return {
-        total: parseFloat(data.total) || 0,
-        date: data.date || "",
-        merchant: data.merchant || "Desconocido",
-        category
-      };
+    if (!response.ok) {
+      throw new Error(`Error del servidor: ${response.status}`);
     }
-    throw new Error("No se pudo parsear la respuesta de Gemini");
+
+    const data = await response.json();
+    return {
+      total: data.total || 0,
+      date: data.date || '',
+      merchant: data.merchant || 'Desconocido',
+      category: data.category || 'Varios'
+    };
   } catch (error) {
-    console.error("Error analizando ticket:", error);
-    return { total: 0, date: "", merchant: "Error", category: "Varios" };
+    console.error('Error analizando ticket:', error);
+    return { total: 0, date: '', merchant: 'Error', category: 'Varios' };
   }
 };
 export const connectLiveSession = async (onAudioData: any, onClose: any) => {
