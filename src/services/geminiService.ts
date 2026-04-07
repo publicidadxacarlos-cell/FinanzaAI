@@ -124,15 +124,13 @@ export const analyzeReceipt = async (base64Image: string) => {
     const mimeType = base64Image.split(';')[0].split(':')[1] || "image/jpeg";
     const base64Data = base64Image.split(',')[1] || base64Image;
 
-    const prompt = `Analiza esta imagen de un ticket y extrae:
-1. El total (solo el número, usa punto para decimales).
-2. La fecha (DD/MM/AAAA).
-3. El nombre del comercio.
-Responde ÚNICAMENTE con un objeto JSON válido como este: 
-{"total": 15.50, "date": "07/04/2026", "merchant": "Nombre del sitio"}`;
+    const prompt = `Analiza la imagen de este comprobante o ticket y extrae los datos.
+Responde EXCLUSIVAMENTE en formato JSON plano, sin bloques de código Markdown (sin \`\`\`json).
+Usa punto para decimales en el total.
+Formato exacto: {"total": 15.50, "date": "DD/MM/AAAA", "merchant": "Nombre del comercio"}`;
 
     const result = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
       contents: [{
         parts: [
           { text: prompt },
