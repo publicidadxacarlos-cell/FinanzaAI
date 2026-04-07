@@ -116,7 +116,49 @@ export const generateGoalImage = async (prompt: string, aspectRatio: string = "1
 };
 
 // --- SOPORTE Y COMPATIBILIDAD ---
-export const analyzeReceipt = async (base64Image: string) => ({ total: 0, date: "", merchant: "", category: "Varios" });
+export const analyzeReceipt = async (base64Image: string) => {
+  try {
+    const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+    // Extraer mimeType dinámicamente del prefijo base64 (jpeg, png, webp, etc.)
+    const mimeType = base64Image.split(';')[0].split(':')[1] || "image/jpeg";
+    const base64Data = base64Image.split(',')[1] || base64Image;
+
+    const prompt = `Analiza esta imagen de un ticket y extrae:
+1. El total (solo el número, usa punto para decimales).
+2. La fecha (DD/MM/AAAA).
+3. El nombre del comercio.
+Responde ÚNICAMENTE con un objeto JSON válido como este: 
+{"total": 15.50, "date": "07/04/2026", "merchant": "Nombre del sitio"}`;
+
+    const result = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inlineData: { data: base64Data, mimeType } }
+        ]
+      }]
+    });
+
+    const text = result.text;
+    const jsonMatch = text.match(/\{.*\}/s);
+    if (jsonMatch) {
+      const data = JSON.parse(jsonMatch[0]);
+      const category = await categorizeTransaction(data.merchant);
+      return {
+        total: parseFloat(data.total) || 0,
+        date: data.date || "",
+        merchant: data.merchant || "Desconocido",
+        category
+      };
+    }
+    throw new Error("No se pudo parsear la respuesta de Gemini");
+  } catch (error) {
+    console.error("Error analizando ticket:", error);
+    return { total: 0, date: "", merchant: "Error", category: "Varios" };
+  }
+};
 export const connectLiveSession = async (onAudioData: any, onClose: any) => {
   return { sessionPromise: Promise.resolve(), outputAudioContext: new AudioContext() };
 };
