@@ -24,9 +24,10 @@ export default async function handler(req, res) {
 
     const prompt = `Analiza la imagen de este comprobante o ticket y extrae los datos.
 Responde EXCLUSIVAMENTE en formato JSON plano, sin bloques de código Markdown (sin \`\`\`json).
+Si no encuentras la fecha de emisión de forma clara, devuelve el campo "date" como null. No inventes fechas.
 Usa punto para decimales en el total.
 Categoriza el gasto en una de estas: Comida, Ocio, Transporte, Vivienda, Salud, Suscripciones, Compras, Viajes, Mascotas, Varios.
-Formato exacto: {"total": 15.50, "date": "DD/MM/AAAA", "merchant": "Nombre del comercio", "category": "Comida"}`;
+Formato exacto: {"total": 15.50, "date": "DD-MM-AAAA", "merchant": "Nombre del comercio", "category": "Comida"}`;
 
     const result = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -49,7 +50,7 @@ Formato exacto: {"total": 15.50, "date": "DD/MM/AAAA", "merchant": "Nombre del c
 
     return res.status(200).json({
       total: parseFloat(data.total) || 0,
-      date: data.date || '',
+      date: data.date || null,
       merchant: data.merchant || 'Desconocido',
       category: data.category || 'Varios'
     });

@@ -49,8 +49,11 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete, theme }) => {
       
       const newTransaction: Transaction = {
         id: crypto.randomUUID(),
-        // Si Gemini no detecta fecha, usamos la actual
-        date: data.date || new Date().toISOString().split('T')[0],
+        // Si Gemini no detecta fecha, usamos la actual en formato DD-MM-YYYY
+        date: data.date || (() => {
+          const d = new Date();
+          return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+        })(),
         amount: data.total || 0,
         description: data.merchant || 'Recibo escaneado',
         category: data.category || 'Compras',
